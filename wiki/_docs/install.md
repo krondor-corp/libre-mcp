@@ -35,12 +35,20 @@ claude mcp add libre -- libre-mcp
 
 ## From source
 
+Run straight from a checkout (no build):
+
 ```bash
 git clone https://github.com/krondor-corp/libre-mcp
 cd libre-mcp
-make install        # uv sync
+make sync                                   # dev deps
 claude mcp add libre -- $(pwd)/bin/run.sh
 ```
 
 A project-scoped `.mcp.json` (relative `./bin/run.sh`) is also committed, so a
 fresh checkout or git worktree self-registers with no setup.
+
+Or build and install the binary locally:
+
+```bash
+make install                                # -> ~/.local/bin/libre-mcp (override INSTALL_DIR)
+```

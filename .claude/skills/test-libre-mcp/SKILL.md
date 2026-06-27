@@ -26,7 +26,7 @@ verifies it works, end to end, in an environment that has LibreOffice installed.
 
 ### 1. Preflight
 ```bash
-make install          # uv sync
+make sync             # uv sync (dev deps)
 ```
 Confirm LibreOffice is discoverable (this prints the soffice + bundled-python paths or errors):
 ```bash

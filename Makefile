@@ -1,12 +1,22 @@
+INSTALL_DIR ?= $(HOME)/.local/bin
+
 .PHONY: help
 help: ## Show this help message
 	@echo 'Usage: make [target]'
 	@echo ''
 	@awk 'BEGIN {FS = ":.*##"; printf "\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  %-20s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-.PHONY: install
-install: ## Sync dependencies
+.PHONY: sync
+sync: ## Sync dependencies
 	@uv sync
+
+.PHONY: install
+install: binary ## Build and install the binary to INSTALL_DIR (default ~/.local/bin)
+	@mkdir -p "$(INSTALL_DIR)"
+	@cp dist/libre-mcp "$(INSTALL_DIR)/libre-mcp"
+	@chmod +x "$(INSTALL_DIR)/libre-mcp"
+	@echo "installed libre-mcp -> $(INSTALL_DIR)/libre-mcp"
+	@echo "register with: claude mcp add libre -- $(INSTALL_DIR)/libre-mcp"
 
 .PHONY: dev
 dev: ## Run the MCP server over stdio (for manual / inspector use)

@@ -56,7 +56,7 @@ Paths are auto-discovered; override with `LIBRE_MCP_SOFFICE_PATH` /
 ## Develop
 
 ```bash
-make install     # uv sync
+make sync        # uv sync (dev deps)
 make check       # fmt-check + lint + types + test
 make inspect     # run the MCP Inspector against the server
 ```
