@@ -21,10 +21,22 @@ with an explicit tag.
 
 ## One-time GitHub setup
 
-- **Actions permissions**: Settings → Actions → General → Workflow permissions →
-  "Read and write permissions" (so `release-pr.yml` can open PRs).
-- **`RELEASE_PAT`** secret: a fine-grained PAT with Contents: read/write, so the
-  tag push from `release-tag.yml` triggers `release.yml`.
+**Actions permissions** (so `release-pr.yml` can open PRs): Settings → Actions →
+General → Workflow permissions → "Read and write permissions".
+
+**`RELEASE_PAT` secret** — the default `GITHUB_TOKEN` can't push a tag that
+triggers another workflow (GitHub's anti-cascade rule), so `release-tag.yml`
+needs a fine-grained PAT:
+
+1. GitHub → Settings → Developer settings → Personal access tokens →
+   **Fine-grained tokens** → Generate new token:
+   - **Name:** `krondor-corp-libre-mcp-release`
+   - **Resource owner:** `krondor-corp`
+   - **Repository access:** Only select repositories → `krondor-corp/libre-mcp`
+   - **Permissions:** Contents → Read and write
+2. Repo → Settings → Secrets and variables → **Actions** → New repository secret:
+   - **Name:** `RELEASE_PAT`
+   - **Value:** the token
 
 ## Versioning
 
