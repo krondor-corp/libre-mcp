@@ -1,0 +1,24 @@
+title: libre-mcp
+description: A stdio MCP server for controlling LibreOffice (Writer & Calc) over UNO.
+tagline: Drive LibreOffice from Claude Code.
+
+markdown: kramdown
+highlighter: rouge
+
+collections:
+  docs:
+    output: true
+    permalink: /docs/:slug/
+
+defaults:
+  - scope: { path: "" }
+    values: { layout: default }
+  - scope: { path: "", type: docs }
+    values: { layout: doc }
+  - scope: { path: "index.md" }
+    values: { layout: home }
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - Makefile

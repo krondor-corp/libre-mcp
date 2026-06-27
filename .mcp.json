@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "libre": {
+      "command": "./bin/run.sh",
+      "args": [],
+      "env": {}
+    }
+  }
+}

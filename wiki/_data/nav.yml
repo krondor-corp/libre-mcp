@@ -1,0 +1,8 @@
+- section: Getting Started
+  items:
+    - { title: Install, slug: install }
+    - { title: Quickstart, slug: quickstart }
+- section: Reference
+  items:
+    - { title: Tools, slug: tools }
+    - { title: Architecture, slug: architecture }

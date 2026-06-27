@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
+dist/
+build/
+*.egg-info/
+.env
+# runtime LibreOffice profiles / sockets
+.lo_profiles/
+# scratch: keep the dir, ignore its contents (agent/test workspace)
+scratch/*
+!scratch/.gitkeep
+# jekyll wiki build outputs
+wiki/_site/
+wiki/.jekyll-cache/

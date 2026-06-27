@@ -1,0 +1,15 @@
+<nav class="sidebar">
+  {% for sec in site.data.nav %}
+  <div class="sidebar-section">
+    <h3>{{ sec.section }}</h3>
+    <ul>
+      {% for item in sec.items %}
+      <li>
+        <a href="{{ '/docs/' | append: item.slug | append: '/' | relative_url }}"
+           {% if page.slug == item.slug %}class="active"{% endif %}>{{ item.title }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+</nav>

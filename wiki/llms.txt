@@ -1,0 +1,16 @@
+# libre-mcp
+
+> A stdio MCP server for controlling LibreOffice (Writer & Calc) over UNO.
+> Runs LibreOffice headless and drives it via PyUNO; exposes document, writer,
+> and calc tools to MCP clients like Claude Code.
+
+## Docs
+
+- [Install](https://libre-mcp.krondor.org/docs/install/): prerequisites and install paths
+- [Quickstart](https://libre-mcp.krondor.org/docs/quickstart/): first document, create/edit/export flow
+- [Tools](https://libre-mcp.krondor.org/docs/tools/): full tool surface (document, writer, calc)
+- [Architecture](https://libre-mcp.krondor.org/docs/architecture/): two-process design, named-pipe isolation
+
+## Source
+
+- [GitHub](https://github.com/krondor-corp/libre-mcp)

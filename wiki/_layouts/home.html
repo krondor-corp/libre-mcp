@@ -1,0 +1,15 @@
+---
+layout: default
+---
+<section class="hero">
+  <h1>{{ site.title }}</h1>
+  <p class="tagline">{{ site.tagline }}</p>
+  <p class="lede">{{ site.description }}</p>
+  <div class="hero-actions">
+    <a class="btn" href="{{ '/docs/install/' | relative_url }}">Get started</a>
+    <a class="btn btn-ghost" href="https://github.com/krondor-corp/libre-mcp">GitHub</a>
+  </div>
+</section>
+<section class="content-body">
+  {{ content }}
+</section>

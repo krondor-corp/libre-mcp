@@ -1,0 +1,38 @@
+[project]
+name = "libre-mcp"
+version = "0.1.0"
+description = "stdio MCP server for controlling LibreOffice (Writer/Calc) over UNO"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=1.8",
+]
+
+[project.scripts]
+libre-mcp = "src.__main__:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.25.3",
+    "black",
+    "ruff",
+    "ty",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ty.src]
+# uno_worker.py runs under LibreOffice's bundled 3.10 interpreter and operates
+# on dynamically-typed PyUNO bridge objects (com.sun.star.*) that no static
+# checker can resolve without UNO stubs. It is validated by the integration
+# tests under the real interpreter, not by ty.
+exclude = ["src/office/uno_worker.py"]
