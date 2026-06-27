@@ -8,6 +8,7 @@ bootstrap the URE). We run the dependency-free UNO worker under it.
 
 import os
 import shutil
+import subprocess
 
 from src.log import get_logger
 
@@ -77,17 +78,48 @@ def find_bundled_python(override: str | None = None, soffice: str | None = None)
             log.debug("found bundled python: %s", c)
             return c
 
-    # Debian/Ubuntu ship no bundled interpreter; `uno` is provided to the system
-    # python3 via the python3-uno package. Use it as a last resort.
-    system_py = shutil.which("python3")
-    if system_py:
-        log.debug("falling back to system python3 (expects python3-uno): %s", system_py)
-        return system_py
+    # Debian/Ubuntu ship no bundled interpreter; `uno` is provided to the SYSTEM
+    # python3 via the python3-uno package. Probe system interpreters and pick the
+    # first that can actually `import uno` — never trust PATH, which in a uv/venv
+    # environment resolves python3 to the project venv (which has no uno).
+    for candidate in _system_python_candidates():
+        if _can_import_uno(candidate):
+            log.debug("using system python with uno: %s", candidate)
+            return candidate
 
     raise DiscoveryError(
         "could not locate a python that can `import uno`; install python3-uno "
         "(Debian/Ubuntu) or set LIBRE_MCP_PYTHON_PATH"
     )
+
+
+def _system_python_candidates() -> list[str]:
+    """System python interpreters to probe, system locations first."""
+    candidates = ["/usr/bin/python3", "/usr/local/bin/python3"]
+    which = shutil.which("python3")
+    if which:
+        candidates.append(which)
+    out: list[str] = []
+    seen: set[str] = set()
+    for c in candidates:
+        if os.path.exists(c):
+            real = os.path.realpath(c)
+            if real not in seen:
+                seen.add(real)
+                out.append(c)
+    return out
+
+
+def _can_import_uno(python_path: str) -> bool:
+    try:
+        proc = subprocess.run(
+            [python_path, "-c", "import uno"],
+            capture_output=True,
+            timeout=15,
+        )
+        return proc.returncode == 0
+    except Exception:
+        return False
 
 
 def worker_script() -> str:
