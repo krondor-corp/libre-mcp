@@ -40,7 +40,8 @@ curl -fsSL https://raw.githubusercontent.com/krondor-corp/libre-mcp/main/install
 claude mcp add libre -- libre-mcp
 ```
 
-The script installs `uv` if needed and installs the latest release as a uv tool.
+Downloads a prebuilt, self-contained binary (no Python needed on the host).
+Update in place with `libre-mcp update`.
 
 ## Requirements
 
@@ -48,10 +49,9 @@ The script installs `uv` if needed and installs the latest release as a uv tool.
   - macOS: `/Applications/LibreOffice.app`
   - Debian/Ubuntu: `apt install libreoffice-writer libreoffice-calc python3-uno`
   - TDF/opt Linux builds bundle their own Python and need nothing extra.
-- [uv](https://docs.astral.sh/uv/) (installed for you by `install.sh`).
 
 Paths are auto-discovered; override with `LIBRE_MCP_SOFFICE_PATH` /
-`LIBRE_MCP_PYTHON_PATH` if needed.
+`LIBRE_MCP_PYTHON_PATH` if needed. (`uv` is only needed for development.)
 
 ## Develop
 

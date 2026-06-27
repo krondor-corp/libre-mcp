@@ -11,7 +11,6 @@ description: Install libre-mcp and register it with your MCP client.
   - macOS: `/Applications/LibreOffice.app`
   - Linux (Debian/Ubuntu): `sudo apt-get install libreoffice-writer libreoffice-calc python3-uno`
   - Linux (TDF/opt builds) ship their own bundled Python and need nothing extra.
-- That's it — [uv](https://docs.astral.sh/uv/) is installed for you by the script.
 
 ## Install
 
@@ -19,9 +18,14 @@ description: Install libre-mcp and register it with your MCP client.
 curl -fsSL https://raw.githubusercontent.com/krondor-corp/libre-mcp/main/install.sh | bash
 ```
 
-This installs `uv` if needed, downloads the latest release wheel, and installs
-the `libre-mcp` command as an isolated uv tool. Pin a version with
-`LIBRE_MCP_VERSION=v0.1.0`.
+Downloads a prebuilt, self-contained binary to `~/.local/bin` (no Python needed
+on the host). Override the location with `INSTALL_DIR`.
+
+## Update
+
+```bash
+libre-mcp update
+```
 
 ## Register with Claude Code
 

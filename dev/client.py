@@ -26,6 +26,7 @@ and so on.
 import asyncio
 import json
 import os
+import shlex
 import sys
 
 from mcp import ClientSession, StdioServerParameters
@@ -36,7 +37,14 @@ def _server_params() -> StdioServerParameters:
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     env = dict(os.environ)
     env.setdefault("LIBRE_MCP_LOG_LEVEL", "INFO")
-    # Run the server from the repo root so `python -m src` resolves the package.
+    # LIBRE_MCP_SERVER_CMD lets you point at a built binary (e.g. dist/libre-mcp)
+    # instead of the source; otherwise run `python -m src` from the repo root.
+    override = os.environ.get("LIBRE_MCP_SERVER_CMD")
+    if override:
+        parts = shlex.split(override)
+        return StdioServerParameters(
+            command=parts[0], args=parts[1:], cwd=repo_root, env=env
+        )
     return StdioServerParameters(
         command=sys.executable,
         args=["-m", "src"],

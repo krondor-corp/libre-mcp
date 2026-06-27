@@ -9,6 +9,7 @@ bootstrap the URE). We run the dependency-free UNO worker under it.
 import os
 import shutil
 import subprocess
+import sys
 
 from src.log import get_logger
 
@@ -123,5 +124,12 @@ def _can_import_uno(python_path: str) -> bool:
 
 
 def worker_script() -> str:
-    """Absolute path to the uno_worker.py run under the bundled interpreter."""
+    """Absolute path to the uno_worker.py run under LibreOffice's interpreter.
+
+    In a PyInstaller bundle the source isn't a real file on disk, so the worker
+    is shipped as bundled data and extracted under sys._MEIPASS at runtime.
+    """
+    base = getattr(sys, "_MEIPASS", None)
+    if base:
+        return os.path.join(base, "src", "office", "uno_worker.py")
     return os.path.join(os.path.dirname(__file__), "uno_worker.py")

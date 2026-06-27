@@ -56,9 +56,14 @@ types: ## Run type checking with ty
 .PHONY: check
 check: fmt-check lint types test ## Run all checks
 
+.PHONY: binary
+binary: ## Build the standalone binary into dist/libre-mcp
+	@uv run --group build pyinstaller libre-mcp.spec --clean -y
+
 .PHONY: clean
 clean: ## Clean build artifacts and runtime profiles
 	@find . -type d -name "__pycache__" -exec rm -rf {} +
 	@find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	@find . -type f -name "*.pyc" -delete
-	@rm -rf .lo_profiles scratch
+	@rm -rf .lo_profiles dist build pkg
+	@rm -rf scratch/* && touch scratch/.gitkeep

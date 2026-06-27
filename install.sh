@@ -1,55 +1,63 @@
-#!/bin/bash
-# Install libre-mcp as a uv tool from its latest GitHub Release wheel.
-#
-#   curl -fsSL https://raw.githubusercontent.com/krondor-corp/libre-mcp/main/install.sh | bash
-#
-# Pin a version:   LIBRE_MCP_VERSION=v0.1.0 bash install.sh
-#
-# Requires: curl, and LibreOffice installed on the host (the server drives it).
-# uv is installed automatically if missing.
+#!/usr/bin/env bash
 set -euo pipefail
 
 REPO="krondor-corp/libre-mcp"
-VERSION="${LIBRE_MCP_VERSION:-latest}"
+BINARY="libre-mcp"
+INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 
-say() { printf '\033[1m%s\033[0m\n' "$*"; }
-err() { printf '\033[31merror:\033[0m %s\n' "$*" >&2; exit 1; }
+TMP=""
+trap 'rm -rf "${TMP}"' EXIT
 
-command -v curl >/dev/null 2>&1 || err "curl is required"
+main() {
+    local os arch version url
 
-# 1. Ensure uv is available.
-if ! command -v uv >/dev/null 2>&1; then
-  say "installing uv (https://astral.sh/uv) ..."
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-  export PATH="$HOME/.local/bin:$PATH"
-  command -v uv >/dev/null 2>&1 || err "uv install failed; add it to PATH and retry"
-fi
+    os="$(detect_os)"
+    arch="$(detect_arch)"
+    version="$(latest_version)"
 
-# 2. Resolve the release tag.
-api="https://api.github.com/repos/${REPO}/releases"
-if [ "$VERSION" = "latest" ]; then
-  TAG="$(curl -fsSL "${api}/latest" | grep '"tag_name"' | head -1 | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')"
-  [ -n "$TAG" ] || err "could not resolve the latest release tag"
-else
-  TAG="$VERSION"
-fi
-say "installing libre-mcp ${TAG} ..."
+    echo "Installing ${BINARY} ${version} (${arch}-${os})..."
 
-# 3. Find the wheel asset on that release.
-WHEEL_URL="$(curl -fsSL "${api}/tags/${TAG}" \
-  | grep 'browser_download_url' | grep '\.whl' | head -1 \
-  | sed -E 's/.*"(https[^"]+\.whl)".*/\1/')"
-[ -n "$WHEEL_URL" ] || err "no wheel asset found on release ${TAG}"
+    url="https://github.com/${REPO}/releases/download/${version}/${BINARY}-${version}-${arch}-${os}.tar.gz"
 
-# 4. Download and install as an isolated uv tool.
-tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
-curl -fsSL -o "${tmp}/pkg.whl" "$WHEEL_URL"
-uv tool install --force "${tmp}/pkg.whl"
+    TMP="$(mktemp -d)"
 
-say "done."
-echo
-echo "  Registered the 'libre-mcp' command. Add it to Claude Code with:"
-echo "    claude mcp add libre -- libre-mcp"
-echo
-echo "  (Requires LibreOffice installed; on Debian/Ubuntu also: apt install python3-uno)"
+    curl -fsSL "${url}" | tar -xz -C "${TMP}"
+    mkdir -p "${INSTALL_DIR}"
+    mv "${TMP}"/${BINARY}-${version}-${arch}-${os}/${BINARY} "${INSTALL_DIR}/${BINARY}"
+    chmod +x "${INSTALL_DIR}/${BINARY}"
+
+    echo "Installed ${BINARY} to ${INSTALL_DIR}/${BINARY}"
+    echo "Register it with: claude mcp add libre -- ${INSTALL_DIR}/${BINARY}"
+    echo "(Requires LibreOffice; on Debian/Ubuntu also: apt install python3-uno)"
+
+    if ! echo ":${PATH}:" | grep -q ":${INSTALL_DIR}:"; then
+        echo ""
+        echo "Add to your PATH:"
+        echo "  export PATH=\"${INSTALL_DIR}:\$PATH\""
+    fi
+}
+
+detect_os() {
+    case "$(uname -s)" in
+        Linux*)  echo "linux" ;;
+        Darwin*) echo "darwin" ;;
+        *)       echo "Unsupported OS: $(uname -s)" >&2; exit 1 ;;
+    esac
+}
+
+detect_arch() {
+    case "$(uname -m)" in
+        x86_64|amd64)  echo "x86_64" ;;
+        arm64|aarch64) echo "aarch64" ;;
+        *)             echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;;
+    esac
+}
+
+latest_version() {
+    curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
+        | grep '"tag_name"' \
+        | head -1 \
+        | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/'
+}
+
+main

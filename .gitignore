@@ -5,6 +5,7 @@ __pycache__/
 .venv/
 dist/
 build/
+pkg/
 *.egg-info/
 .env
 # runtime LibreOffice profiles / sockets

@@ -1,50 +1,56 @@
 # Releases
 
-libre-mcp is pure Python, so a release is a single wheel that works on macOS and
-Linux — no per-platform build matrix.
+Mirrors the confit release flow: conventional-commit → release PR → tag → build.
+End users get a prebuilt, self-contained binary (PyInstaller) per platform.
 
-## Cutting a release
+## The automated flow
 
-1. Bump `version` in `pyproject.toml` (and `src/__init__.py:__version__`).
-2. Commit, then tag and push:
-   ```bash
-   git tag v0.1.0
-   git push origin v0.1.0
-   ```
-3. The **Release** workflow (`.github/workflows/release.yml`) fires on the `v*`
-   tag: it runs `uv build` (wheel + sdist) and publishes a GitHub Release with
-   auto-generated notes and both artifacts attached. A tag containing a hyphen
-   (e.g. `v0.1.0-rc1`) is marked as a prerelease.
+1. **Push to `main`** → `release-pr.yml` reads conventional commits since the
+   last `v*` tag, computes a semver bump, bumps `pyproject.toml` +
+   `src/__init__.py`, regenerates `CHANGELOG.md` (git-cliff), and opens/updates a
+   single `release-automation` PR.
+2. **Merge that PR** → `release-tag.yml` reads the version from `pyproject.toml`
+   and pushes a `v<version>` tag. It uses the **`RELEASE_PAT`** secret, because
+   the default `GITHUB_TOKEN` cannot trigger another workflow.
+3. **Tag `v*`** → `release.yml` builds the binary on a native runner per target
+   (linux x86_64/aarch64, darwin x86_64/aarch64), packages
+   `libre-mcp-<tag>-<arch>-<os>.tar.gz`, and publishes a GitHub Release.
 
-You can also trigger it manually via **workflow_dispatch** with an explicit tag.
+You can also build a release manually via `release.yml`'s **workflow_dispatch**
+with an explicit tag.
+
+## One-time GitHub setup
+
+- **Actions permissions**: Settings → Actions → General → Workflow permissions →
+  "Read and write permissions" (so `release-pr.yml` can open PRs).
+- **`RELEASE_PAT`** secret: a fine-grained PAT with Contents: read/write, so the
+  tag push from `release-tag.yml` triggers `release.yml`.
 
 ## Versioning
 
-- Source of truth: the `version` field in `pyproject.toml`.
-- Tags are `v<version>` (the `v` prefix is required — the workflow triggers on
-  `tags: ['v*']`).
-- Semantic versioning.
+- Source of truth: `version` in `pyproject.toml` (mirrored in `src/__init__.py`).
+- Tags are `v<version>`; a tag containing `-` (e.g. `v0.2.0-rc1`) is a prerelease.
 
-## Install path
+## Manual release
 
-End users install with the bootstrap script, which installs `uv` if needed,
-downloads the latest release wheel, and installs it as an isolated uv tool:
+If you'd rather skip the PR bot: bump the version, commit, then
+`git tag v0.2.0 && git push origin v0.2.0`.
+
+## Install / update
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/krondor-corp/libre-mcp/main/install.sh | bash
+libre-mcp update   # in-place self-update to the latest release
 ```
 
-Then register the global command with Claude Code:
+## Local build
 
 ```bash
-claude mcp add libre -- libre-mcp
+make binary        # -> dist/libre-mcp
 ```
-
-LibreOffice must be installed on the host (Debian/Ubuntu also need
-`python3-uno`).
 
 ## CI
 
-`.github/workflows/test.yml` runs on every push to `main` and every PR: it
-installs LibreOffice + `python3-uno` and runs `make check` (black, ruff, ty, and
-pytest including the live integration tests).
+`test.yml` runs on every push to `main` and PR: installs LibreOffice +
+`python3-uno` and runs `make check` (black, ruff, ty, pytest incl. live
+integration).

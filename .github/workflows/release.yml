@@ -2,37 +2,79 @@ name: Release
 
 on:
   push:
-    tags: ["v*"]
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       tag:
-        description: "Tag to build a release for (e.g. v0.1.0)"
+        description: "Tag to build release for (e.g. v1.0.0)"
         required: true
 
 permissions:
   contents: write
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+  build:
+    name: Build ${{ matrix.arch }}-${{ matrix.os_name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: ubuntu-latest,    arch: x86_64,  os_name: linux }
+          - { runner: ubuntu-24.04-arm, arch: aarch64, os_name: linux }
+          - { runner: macos-13,         arch: x86_64,  os_name: darwin }
+          - { runner: macos-14,         arch: aarch64, os_name: darwin }
+
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag || github.ref }}
 
       - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
 
-      - name: Build wheel + sdist
-        run: uv build
+      - name: Build binary
+        run: uv run --group build pyinstaller libre-mcp.spec --clean -y
 
-      - name: Publish GitHub Release
+      - name: Package
+        shell: bash
+        run: |
+          VERSION=${{ inputs.tag || github.ref_name }}
+          ARCHIVE_NAME="libre-mcp-${VERSION}-${{ matrix.arch }}-${{ matrix.os_name }}"
+          mkdir -p "pkg/${ARCHIVE_NAME}"
+          cp dist/libre-mcp "pkg/${ARCHIVE_NAME}/"
+          cp README.md LICENSE* "pkg/${ARCHIVE_NAME}/" 2>/dev/null || true
+          cd pkg
+          tar -czvf "${ARCHIVE_NAME}.tar.gz" "${ARCHIVE_NAME}"
+          echo "ASSET=${ARCHIVE_NAME}.tar.gz" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ASSET }}
+          path: pkg/${{ env.ASSET }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag || github.ref_name }}
-          files: dist/*
+          files: artifacts/**/*
           generate_release_notes: true
           draft: false
-          # any tag containing a hyphen (v0.1.0-rc1) is treated as a prerelease
           prerelease: ${{ contains(inputs.tag || github.ref_name, '-') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
