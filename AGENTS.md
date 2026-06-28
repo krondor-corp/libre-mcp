@@ -52,6 +52,27 @@ server (served at libre-mcp.krondor.org/llms.txt). Keep it current.
 - Commits use conventional-commit prefixes (`feat:`, `fix:`, `docs:`, …); they
   drive the automated release-PR version bump.
 
+## Agent tooling (portability)
+
+This repo uses the cross-agent standards so its guidance and skills work beyond
+Claude Code:
+
+- **Instructions** — `AGENTS.md` (this file) is canonical and read natively by
+  most agents (OpenAI Codex, Cursor, GitHub Copilot, Gemini CLI, Zed, Windsurf,
+  …). Claude Code reads `CLAUDE.md`, which just imports this file (`@AGENTS.md`),
+  so both see the same content with no duplication.
+- **Skills** — `/docs` and `/test-libre-mcp` follow the open
+  [agentskills.io](https://agentskills.io) `SKILL.md` spec (required frontmatter:
+  `name` + `description`; keep the body short). They live in `.claude/skills/`
+  (read by Claude Code, and auto-discovered by GitHub Copilot and Cursor) and are
+  exposed at `.agents/skills/` (a symlink) for OpenAI Codex.
+
+To fan these out to directory-of-rules tools (`.cursor/rules/`,
+`.github/instructions/`, `.windsurf/rules/`) or add `GEMINI.md`/Aider bridges, a
+sync tool like [ruler](https://github.com/intellectronica/ruler) or
+[rulesync](https://github.com/dyoshikawa/rulesync) can generate them from this
+single source.
+
 ## References
 
 Implementing a worker op means calling the LibreOffice UNO API:
