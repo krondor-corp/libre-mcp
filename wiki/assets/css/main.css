@@ -15,11 +15,11 @@
   --primary-foreground: 40 20% 97%;
   --secondary: 40 10% 92%;
   --secondary-foreground: 30 10% 20%;
-  --accent: 38 92% 50%;
-  --accent-foreground: 38 90% 14%;
+  --accent: 16 85% 42%;
+  --accent-foreground: 0 0% 98%;
   --destructive: 0 60% 45%;
   --destructive-foreground: 0 0% 98%;
-  --ring: 38 92% 50%;
+  --ring: 16 85% 42%;
   --radius: 0.25rem;
 
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -43,11 +43,11 @@
     --primary-foreground: 30 8% 8%;
     --secondary: 30 5% 16%;
     --secondary-foreground: 35 12% 80%;
-    --accent: 38 80% 55%;
-    --accent-foreground: 38 90% 90%;
+    --accent: 16 78% 52%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 50% 40%;
     --destructive-foreground: 0 0% 95%;
-    --ring: 38 80% 55%;
+    --ring: 16 78% 52%;
     color-scheme: dark;
   }
 }

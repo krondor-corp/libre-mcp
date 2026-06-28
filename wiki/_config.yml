@@ -34,5 +34,5 @@ exclude:
 
 brand:
   primary_color: "#111111"
-  accent_color: "#f59e0b"
+  accent_color: "#c2410c"
   tagline: "Drive LibreOffice from your MCP client"

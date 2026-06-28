@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">
-  <rect x="0"  y="0"  width="10" height="10" rx="2" fill="#f59e0b"/>
+  <rect x="0"  y="0"  width="10" height="10" rx="2" fill="#c2410c" opacity="0.55"/>
   <rect x="13" y="0"  width="10" height="10" rx="2" fill="#333" opacity="0.15"/>
   <rect x="26" y="0"  width="10" height="10" rx="2" fill="#333" opacity="0.15"/>
-  <rect x="0"  y="13" width="10" height="10" rx="2" fill="#f59e0b"/>
+  <rect x="0"  y="13" width="10" height="10" rx="2" fill="#c2410c" opacity="0.78"/>
   <rect x="13" y="13" width="10" height="10" rx="2" fill="#333" opacity="0.15"/>
   <rect x="26" y="13" width="10" height="10" rx="2" fill="#333" opacity="0.15"/>
-  <rect x="0"  y="26" width="10" height="10" rx="2" fill="#f59e0b"/>
-  <rect x="13" y="26" width="10" height="10" rx="2" fill="#f59e0b"/>
-  <rect x="26" y="26" width="10" height="10" rx="2" fill="#f59e0b"/>
+  <rect x="0"  y="26" width="10" height="10" rx="2" fill="#c2410c"/>
+  <rect x="13" y="26" width="10" height="10" rx="2" fill="#c2410c" opacity="0.85"/>
+  <rect x="26" y="26" width="10" height="10" rx="2" fill="#c2410c" opacity="0.7"/>
 </svg>
