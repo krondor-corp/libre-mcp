@@ -25,9 +25,10 @@ make check         # black, ruff, ty, pytest (live integration runs if LibreOffi
 make binary        # build the standalone binary -> dist/libre-mcp
 ```
 
-`make check` must pass before committing. Drive the running server end to end
-with `dev/client.py` (see `DEVELOPMENT.md`), or follow the `test-libre-mcp` skill
-(`.claude/skills/test-libre-mcp/SKILL.md`).
+`make check` must pass before committing — it runs the MCP-stdio protocol test
+and the session/worker integration tests. For interactive testing use the
+registered `libre` MCP server or `make inspect`; see `DEVELOPMENT.md` and the
+`test-libre-mcp` skill (`.claude/skills/test-libre-mcp/SKILL.md`).
 
 ## When you implement a feature
 

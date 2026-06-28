@@ -22,18 +22,18 @@ make binary        # build dist/libre-mcp
 make install       # build + install to ~/.local/bin (override INSTALL_DIR)
 ```
 
-## Testing without Claude
+## Testing
 
-`dev/client.py` drives the server over MCP stdio (`doc_id`s persist across the
-commands in one `run`):
+`make check` runs the suite, including:
 
-```bash
-uv run python dev/client.py run <<'EOF'
-create_document {"kind": "calc"}
-set_cells {"doc_id": "doc-1", "cells": [{"cell": "A1", "value": 21}, {"cell": "A2", "formula": "=A1*2"}]}
-read_cells {"doc_id": "doc-1", "range": "A1:A2"}
-EOF
-```
+- `tests/test_mcp_stdio.py` — drives the server over the real MCP stdio protocol
+  (initialize → tools/list → call_tool), covering the FastMCP wiring;
+- `tests/test_integration.py` — exercises the session/worker/soffice path
+  directly.
+
+Live integration tests run only when LibreOffice is found, otherwise they skip
+(the tool-listing test always runs). For interactive poking, use the registered
+`libre` MCP server in Claude Code, or `make inspect` (the MCP Inspector).
 
 ## Configuration
 

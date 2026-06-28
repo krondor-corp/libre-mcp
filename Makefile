@@ -30,19 +30,6 @@ run: ## Run the MCP server over stdio
 inspect: ## Launch the MCP Inspector against the server
 	@npx @modelcontextprotocol/inspector uv run libre-mcp
 
-.PHONY: dev-list
-dev-list: ## List tools by driving the server over MCP stdio (dev client)
-	@uv run python dev/client.py list
-
-.PHONY: dev-demo
-dev-demo: ## Run a scripted multi-step session against the server (dev client)
-	@printf '%s\n' \
-		'create_document {"kind": "writer"}' \
-		'insert_text {"doc_id": "doc-1", "text": "Hello from libre-mcp"}' \
-		'get_text {"doc_id": "doc-1"}' \
-		'export_document {"doc_id": "doc-1", "path": "/tmp/libre_demo.pdf"}' \
-		| uv run python dev/client.py run
-
 .PHONY: test
 test: ## Run tests
 	@uv run pytest || test $$? -eq 5
