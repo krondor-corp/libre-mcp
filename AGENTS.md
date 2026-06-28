@@ -51,3 +51,21 @@ server (served at libre-mcp.krondor.org/llms.txt). Keep it current.
   surrounding style.
 - Commits use conventional-commit prefixes (`feat:`, `fix:`, `docs:`, …); they
   drive the automated release-PR version bump.
+
+## References
+
+Implementing a worker op means calling the LibreOffice UNO API:
+
+- UNO IDL reference: <https://api.libreoffice.org/docs/idl/ref/index.html>
+  - Writer — `com.sun.star.text`:
+    <https://api.libreoffice.org/docs/idl/ref/namespacecom_1_1sun_1_1star_1_1text.html>
+  - Calc — `com.sun.star.sheet`:
+    <https://api.libreoffice.org/docs/idl/ref/namespacecom_1_1sun_1_1star_1_1sheet.html>
+  - Impress — `com.sun.star.presentation`:
+    <https://api.libreoffice.org/docs/idl/ref/namespacecom_1_1sun_1_1star_1_1presentation.html>
+- Developer's Guide: <https://wiki.documentfoundation.org/Documentation/DevGuide>
+- Python / PyUNO scripting: <https://wiki.documentfoundation.org/Macros/Python_Guide>
+- Export filter names (for the `_FILTERS` map):
+  <https://help.libreoffice.org/latest/en-US/text/shared/guide/convertfilters.html>
+- MCP: <https://modelcontextprotocol.io> · Python SDK:
+  <https://github.com/modelcontextprotocol/python-sdk>

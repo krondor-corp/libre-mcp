@@ -75,4 +75,16 @@ export_document   {"doc_id": "doc-1", "path": "/abs/path/deck.pptx"}
   0-based index.
 - To revise an existing file, `open_document` it, edit, then `save_document`.
 
+## Reference
+
+The server wraps LibreOffice's UNO API. To understand a capability or find one
+not yet exposed:
+
+- LibreOffice: https://www.libreoffice.org · Help: https://help.libreoffice.org
+- UNO API reference: https://api.libreoffice.org/docs/idl/ref/index.html
+  (Writer `com.sun.star.text`, Calc `com.sun.star.sheet`, Impress
+  `com.sun.star.presentation`)
+- Export filter names: https://help.libreoffice.org/latest/en-US/text/shared/guide/convertfilters.html
+- Model Context Protocol: https://modelcontextprotocol.io
+
 Source: https://github.com/krondor-corp/libre-mcp
