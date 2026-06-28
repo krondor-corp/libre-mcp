@@ -1,7 +1,25 @@
 <header class="site-header">
-  <a class="brand" href="{{ '/' | relative_url }}">libre-mcp</a>
-  <nav class="top-nav">
-    <a href="{{ '/docs/install/' | relative_url }}">Docs</a>
-    <a href="https://github.com/krondor-corp/libre-mcp">GitHub</a>
-  </nav>
+  <div class="header-inner">
+    <a href="{{ '/' | relative_url }}" class="site-title">
+      <svg class="site-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="24" height="24">
+        <rect x="0"  y="0"  width="10" height="10" rx="2" fill="hsl(38 92% 50%)"/>
+        <rect x="13" y="0"  width="10" height="10" rx="2" fill="currentColor" opacity="0.15"/>
+        <rect x="26" y="0"  width="10" height="10" rx="2" fill="currentColor"/>
+        <rect x="0"  y="13" width="10" height="10" rx="2" fill="currentColor"/>
+        <rect x="13" y="13" width="10" height="10" rx="2" fill="hsl(38 92% 50%)"/>
+        <rect x="26" y="13" width="10" height="10" rx="2" fill="currentColor" opacity="0.15"/>
+        <rect x="0"  y="26" width="10" height="10" rx="2" fill="currentColor" opacity="0.15"/>
+        <rect x="13" y="26" width="10" height="10" rx="2" fill="currentColor"/>
+        <rect x="26" y="26" width="10" height="10" rx="2" fill="hsl(38 92% 50%)"/>
+      </svg>
+      <span class="site-title-text">LIBRE-MCP</span>
+    </a>
+    <div class="site-nav">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg class="theme-icon-light" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg class="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a href="{{ '/docs/install/' | relative_url }}" class="site-nav-link">Docs &rarr;</a>
+    </div>
+  </div>
 </header>

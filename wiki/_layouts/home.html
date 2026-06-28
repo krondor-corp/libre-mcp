@@ -1,15 +1,44 @@
----
-layout: default
----
-<section class="hero">
-  <h1>{{ site.title }}</h1>
-  <p class="tagline">{{ site.tagline }}</p>
-  <p class="lede">{{ site.description }}</p>
-  <div class="hero-actions">
-    <a class="btn" href="{{ '/docs/install/' | relative_url }}">Get started</a>
-    <a class="btn btn-ghost" href="https://github.com/krondor-corp/libre-mcp">GitHub</a>
-  </div>
-</section>
-<section class="content-body">
-  {{ content }}
-</section>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% include head.html %}
+</head>
+<body>
+  {% include header.html %}
+  <main class="home">
+
+    <section class="hero">
+      <span class="hero-eyebrow">{{ site.tagline }}</span>
+      <h1 class="hero-title">libre-mcp</h1>
+      <p class="hero-tagline">Control LibreOffice &mdash; Writer &amp; Calc &mdash; from Claude Code and other MCP clients. Create, edit, run formulas, and export, all over one stdio server.</p>
+      <div class="hero-install" id="hero-install">
+        <code>curl -fsSL https://raw.githubusercontent.com/krondor-corp/libre-mcp/main/install.sh | bash</code>
+        <button class="copy-btn copy-btn-visible" onclick="navigator.clipboard.writeText('curl -fsSL https://raw.githubusercontent.com/krondor-corp/libre-mcp/main/install.sh | bash').then(function(){var b=document.querySelector('#hero-install .copy-btn');b.textContent='copied';setTimeout(function(){b.textContent='copy'},1500)})">copy</button>
+      </div>
+      <div class="hero-links">
+        <a href="{{ '/docs/install/' | relative_url }}" class="hero-cta">Get started</a>
+        <a href="https://github.com/krondor-corp/libre-mcp" class="hero-link">View on GitHub</a>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="feature-grid">
+        <div class="feature">
+          <h3>Documents</h3>
+          <p>Create, open, and edit Writer documents and Calc spreadsheets over the UNO API.</p>
+        </div>
+        <div class="feature">
+          <h3>Formulas</h3>
+          <p>Write cells and formulas, then read the evaluated results straight back.</p>
+        </div>
+        <div class="feature">
+          <h3>Export</h3>
+          <p>Save to PDF, DOCX, XLSX, CSV, ODF, and HTML &mdash; whatever LibreOffice can write.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  {% include footer.html %}
+</body>
+</html>

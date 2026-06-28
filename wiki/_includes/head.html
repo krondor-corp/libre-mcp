@@ -1,7 +1,24 @@
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% if page.title %}{{ page.title }} · {% endif %}{{ site.title }}</title>
-  <meta name="description" content="{{ page.description | default: site.description }}">
-  <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
-</head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if page.title and page.title != "Home" %}{{ page.title }} — {{ site.title }}{% else %}{{ site.title }} — {{ site.tagline }}{% endif %}</title>
+<meta name="description" content="{{ site.description }}">
+<link rel="icon" type="image/svg+xml" href="{{ '/assets/images/favicon.svg' | relative_url }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+<script>
+(function() {
+  var saved = localStorage.getItem('theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+})();
+function toggleTheme() {
+  var html = document.documentElement;
+  var current = html.getAttribute('data-theme');
+  var isDark = current === 'dark' || (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  var next = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+}
+</script>
+{% include copy.html %}

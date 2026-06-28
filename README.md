@@ -92,9 +92,8 @@ Full arguments and examples: the
 
 ## Links
 
-- [Documentation & quickstart](https://libre-mcp.krondor.org)
-- [How it works](https://libre-mcp.krondor.org/docs/architecture/)
-- [Development](https://libre-mcp.krondor.org/docs/development/)
+- [Documentation](https://libre-mcp.krondor.org)
+- [Development](DEVELOPMENT.md)
 - [Releases](RELEASES.md)
 
 ## Acknowledgements

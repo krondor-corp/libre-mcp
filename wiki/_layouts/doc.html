@@ -1,10 +1,25 @@
----
-layout: default
----
-<div class="doc-wrap">
-  {% include sidebar.html %}
-  <article class="doc">
-    <h1>{{ page.title }}</h1>
-    {{ content }}
-  </article>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% include head.html %}
+</head>
+<body>
+  {% include header.html %}
+  <main class="docs-layout">
+    <details class="sidebar-mobile">
+      <summary>Navigation</summary>
+      {% include sidebar.html %}
+    </details>
+    <div class="sidebar-desktop">
+      {% include sidebar.html %}
+    </div>
+    <div class="docs-content">
+      <article>
+        <h1>{{ page.title }}</h1>
+        {{ content }}
+      </article>
+    </div>
+  </main>
+  {% include footer.html %}
+</body>
+</html>

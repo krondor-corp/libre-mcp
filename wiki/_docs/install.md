@@ -2,53 +2,40 @@
 title: Install
 slug: install
 order: 1
-description: Install libre-mcp and register it with your MCP client.
+description: Install libre-mcp and connect it to your client.
 ---
-
-## Prerequisites
-
-- **LibreOffice** installed (the server drives it):
-  - macOS: `/Applications/LibreOffice.app`
-  - Linux (Debian/Ubuntu): `sudo apt-get install libreoffice-writer libreoffice-calc python3-uno`
-  - Linux (TDF/opt builds) ship their own bundled Python and need nothing extra.
-
-## Install
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/krondor-corp/libre-mcp/main/install.sh | bash
 ```
 
-Downloads a prebuilt, self-contained binary to `~/.local/bin` (no Python needed
-on the host). Override the location with `INSTALL_DIR`.
+Installs a prebuilt binary to `~/.local/bin` (override with `INSTALL_DIR`). Update
+with `libre-mcp update`.
 
-## Update
+## Requirements
+
+LibreOffice must be installed:
+
+- **macOS:** `/Applications/LibreOffice.app`
+- **Debian/Ubuntu:** `apt install libreoffice-writer libreoffice-calc python3-uno`
+- **Other Linux (TDF/opt builds):** nothing extra.
+
+## Connect
+
+`libre-mcp` is a stdio MCP server. Point your client at the `libre-mcp` command:
 
 ```bash
-libre-mcp update
+claude mcp add libre -- libre-mcp        # Claude Code
 ```
 
-## Register with Claude Code
+For Cursor, Claude Desktop, and Windsurf, add to their MCP config:
 
-```bash
-claude mcp add libre -- libre-mcp
+```json
+{ "mcpServers": { "libre": { "command": "libre-mcp" } } }
 ```
 
-## From source
+VS Code (`.vscode/mcp.json`) uses `servers` instead:
 
-Run straight from a checkout (no build):
-
-```bash
-git clone https://github.com/krondor-corp/libre-mcp
-cd libre-mcp
-make sync                                   # dev deps
-claude mcp add libre -- $(pwd)/bin/run.sh
-```
-
-A project-scoped `.mcp.json` (relative `./bin/run.sh`) is also committed, so a
-fresh checkout or git worktree self-registers with no setup.
-
-Or build and install the binary locally:
-
-```bash
-make install                                # -> ~/.local/bin/libre-mcp (override INSTALL_DIR)
+```json
+{ "servers": { "libre": { "type": "stdio", "command": "libre-mcp" } } }
 ```

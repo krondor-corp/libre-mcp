@@ -1,9 +1,4 @@
-- section: Getting Started
+- title: Guide
   items:
-    - { title: Install, slug: install }
-    - { title: Quickstart, slug: quickstart }
-- section: Reference
-  items:
-    - { title: Tools, slug: tools }
-    - { title: Architecture, slug: architecture }
-    - { title: Development, slug: development }
+    - install
+    - tools

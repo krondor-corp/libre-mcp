@@ -1,13 +1,15 @@
-<nav class="sidebar">
-  {% for sec in site.data.nav %}
-  <div class="sidebar-section">
-    <h3>{{ sec.section }}</h3>
-    <ul>
-      {% for item in sec.items %}
-      <li>
-        <a href="{{ '/docs/' | append: item.slug | append: '/' | relative_url }}"
-           {% if page.slug == item.slug %}class="active"{% endif %}>{{ item.title }}</a>
-      </li>
+<nav class="sidebar" aria-label="Documentation navigation">
+  {% for group in site.data.nav %}
+  <div class="sidebar-group">
+    <h3 class="sidebar-heading">{{ group.title }}</h3>
+    <ul class="sidebar-list">
+      {% for slug in group.items %}
+        {% assign doc = site.docs | where: "slug", slug | first %}
+        {% if doc %}
+        <li class="sidebar-item{% if page.url == doc.url %} active{% endif %}">
+          <a href="{{ doc.url | relative_url }}">{{ doc.title }}</a>
+        </li>
+        {% endif %}
       {% endfor %}
     </ul>
   </div>
