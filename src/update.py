@@ -9,6 +9,7 @@ import shutil
 import sys
 import tarfile
 import tempfile
+import urllib.error
 import urllib.request
 
 from src import __version__
@@ -52,7 +53,18 @@ def self_update() -> int:
         )
         return 1
 
-    rel = _get_json(f"https://api.github.com/repos/{REPO}/releases/latest")
+    try:
+        rel = _get_json(f"https://api.github.com/repos/{REPO}/releases/latest")
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            print(f"no releases published yet for {REPO}", file=sys.stderr)
+        else:
+            print(f"GitHub API error: {e.code} {e.reason}", file=sys.stderr)
+        return 1
+    except urllib.error.URLError as e:
+        print(f"could not reach GitHub: {e.reason}", file=sys.stderr)
+        return 1
+
     tag = rel.get("tag_name", "")
     if tag == f"v{__version__}":
         print(f"already up to date ({tag})", file=sys.stderr)
@@ -76,7 +88,11 @@ def self_update() -> int:
 
     with tempfile.TemporaryDirectory() as tmp:
         archive = os.path.join(tmp, "pkg.tar.gz")
-        urllib.request.urlretrieve(url, archive)
+        try:
+            urllib.request.urlretrieve(url, archive)
+        except (urllib.error.HTTPError, urllib.error.URLError) as e:
+            print(f"download failed: {e}", file=sys.stderr)
+            return 1
         with tarfile.open(archive) as tf:
             tf.extractall(tmp)
         new_bin = next(
