@@ -67,11 +67,11 @@
   --primary-foreground: 30 8% 8%;
   --secondary: 30 5% 16%;
   --secondary-foreground: 35 12% 80%;
-  --accent: 38 80% 55%;
-  --accent-foreground: 38 90% 90%;
+  --accent: 16 78% 52%;
+  --accent-foreground: 0 0% 98%;
   --destructive: 0 50% 40%;
   --destructive-foreground: 0 0% 95%;
-  --ring: 38 80% 55%;
+  --ring: 16 78% 52%;
   color-scheme: dark;
 }
 
