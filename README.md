@@ -11,11 +11,51 @@ Full docs: **[libre-mcp.krondor.org](https://libre-mcp.krondor.org)**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/krondor-corp/libre-mcp/main/install.sh | bash
-claude mcp add libre -- libre-mcp
 ```
 
 Installs a prebuilt, self-contained binary to `~/.local/bin` (no Python needed on
 the host). Update in place with `libre-mcp update`.
+
+## Connect it to your coding tool
+
+`libre-mcp` is a stdio MCP server, so any MCP-capable client can run it. Make
+sure `libre-mcp` is on your `PATH` (or use its absolute path).
+
+**Claude Code**
+```bash
+claude mcp add libre -- libre-mcp
+```
+
+**Cursor** — `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project):
+```json
+{
+  "mcpServers": {
+    "libre": { "command": "libre-mcp" }
+  }
+}
+```
+
+**Claude Desktop** — Settings → Developer → Edit Config (`claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "libre": { "command": "libre-mcp" }
+  }
+}
+```
+
+**VS Code** (GitHub Copilot) — `.vscode/mcp.json`, or `code --add-mcp '{"name":"libre","command":"libre-mcp"}'`:
+```json
+{
+  "servers": {
+    "libre": { "type": "stdio", "command": "libre-mcp" }
+  }
+}
+```
+
+**Windsurf** — `~/.codeium/windsurf/mcp_config.json`: same `mcpServers` shape as Cursor.
+
+Restart the client (or reload its MCP config) and `libre`'s tools appear.
 
 ## Requirements
 
