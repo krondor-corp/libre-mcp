@@ -96,3 +96,17 @@ Full arguments and examples: the
 - [How it works](https://libre-mcp.krondor.org/docs/architecture/)
 - [Development](https://libre-mcp.krondor.org/docs/development/)
 - [Releases](RELEASES.md)
+
+## Acknowledgements
+
+Built on the work of others:
+
+- [LibreOffice](https://www.libreoffice.org/) and The Document Foundation — the
+  office suite and its [UNO](https://www.openoffice.org/udk/) / PyUNO automation
+  API that does all the real work.
+- [Model Context Protocol](https://modelcontextprotocol.io) and the
+  [Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk).
+- [PyInstaller](https://pyinstaller.org/), [uv](https://docs.astral.sh/uv/), and
+  [git-cliff](https://git-cliff.org/) for packaging and releases.
+- [confit](https://confit.krondor.org) — the model for this project's release and
+  docs setup.
