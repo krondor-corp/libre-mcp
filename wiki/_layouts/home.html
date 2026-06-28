@@ -10,7 +10,7 @@
     <section class="hero">
       <span class="hero-eyebrow">{{ site.tagline }}</span>
       <h1 class="hero-title">libre-mcp</h1>
-      <p class="hero-tagline">Control LibreOffice &mdash; Writer &amp; Calc &mdash; from Claude Code and other MCP clients. Create, edit, run formulas, and export, all over one stdio server.</p>
+      <p class="hero-tagline">Control LibreOffice &mdash; Writer, Calc &amp; Impress &mdash; from Claude Code and other MCP clients. Create and edit documents, spreadsheets, and presentations, then export to PDF, DOCX, XLSX, or PPTX.</p>
       <div class="hero-install" id="hero-install">
         <code>curl -fsSL https://raw.githubusercontent.com/krondor-corp/libre-mcp/main/install.sh | bash</code>
         <button class="copy-btn copy-btn-visible" onclick="navigator.clipboard.writeText('curl -fsSL https://raw.githubusercontent.com/krondor-corp/libre-mcp/main/install.sh | bash').then(function(){var b=document.querySelector('#hero-install .copy-btn');b.textContent='copied';setTimeout(function(){b.textContent='copy'},1500)})">copy</button>
@@ -24,16 +24,16 @@
     <section class="features">
       <div class="feature-grid">
         <div class="feature">
-          <h3>Documents</h3>
-          <p>Create, open, and edit Writer documents and Calc spreadsheets over the UNO API.</p>
+          <h3>Documents &amp; sheets</h3>
+          <p>Create and edit Writer documents and Calc spreadsheets over the UNO API; write cells and formulas, read results back.</p>
         </div>
         <div class="feature">
-          <h3>Formulas</h3>
-          <p>Write cells and formulas, then read the evaluated results straight back.</p>
+          <h3>Presentations</h3>
+          <p>Build Impress decks &mdash; add slides, set titles and bullets &mdash; and save them as PowerPoint (.pptx).</p>
         </div>
         <div class="feature">
           <h3>Export</h3>
-          <p>Save to PDF, DOCX, XLSX, CSV, ODF, and HTML &mdash; whatever LibreOffice can write.</p>
+          <p>Save to PDF, DOCX, XLSX, PPTX, CSV, ODF, and HTML &mdash; whatever LibreOffice can write.</p>
         </div>
       </div>
     </section>

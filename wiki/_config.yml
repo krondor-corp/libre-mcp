@@ -1,6 +1,6 @@
 title: libre-mcp
 tagline: Drive LibreOffice from your MCP client
-description: A stdio MCP server for controlling LibreOffice (Writer & Calc) over UNO.
+description: A stdio MCP server for controlling LibreOffice (Writer, Calc & Impress) over UNO.
 baseurl: ""
 url: ""
 

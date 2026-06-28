@@ -1,7 +1,8 @@
 # libre-mcp
 
-> A stdio MCP server for controlling LibreOffice (Writer & Calc) over UNO.
-> Runs LibreOffice headless and exposes document tools to MCP clients.
+> A stdio MCP server for controlling LibreOffice (Writer, Calc & Impress) over UNO.
+> Runs LibreOffice headless and exposes document, spreadsheet, and presentation
+> tools to MCP clients; exports to PDF, DOCX, XLSX, PPTX, and more.
 
 ## Docs
 

@@ -1,9 +1,9 @@
 # libre-mcp
 
 A stdio [MCP](https://modelcontextprotocol.io) server for controlling
-**LibreOffice** (Writer & Calc) from Claude Code and other MCP clients — create
-and edit documents, run spreadsheet formulas, and export to PDF/DOCX/XLSX and
-more. macOS and Linux.
+**LibreOffice** (Writer, Calc & Impress) from Claude Code and other MCP clients —
+create and edit documents, spreadsheets, and presentations; run formulas; and
+export to PDF, DOCX, XLSX, **PPTX**, and more. macOS and Linux.
 
 Full docs: **[libre-mcp.krondor.org](https://libre-mcp.krondor.org)**
 
@@ -70,8 +70,9 @@ Paths are auto-discovered; override with `LIBRE_MCP_SOFFICE_PATH` /
 
 ## Usage
 
-Ask your MCP client to work with documents. The typical flow is **create/open →
-edit → export**; documents stay open (referenced by `doc_id`) until closed.
+Ask your MCP client to work with documents, spreadsheets, or presentations. The
+typical flow is **create/open → edit → export** (e.g. build a deck and save it as
+`.pptx`); documents stay open (referenced by `doc_id`) until closed.
 
 | Tool | Purpose |
 |------|---------|
