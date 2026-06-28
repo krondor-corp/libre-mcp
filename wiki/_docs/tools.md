@@ -36,15 +36,3 @@ Formats: `pdf`, `docx`, `odt`, `xlsx`, `ods`, `csv`, `html`, `txt`, `pptx`, `odp
 — a `formula` starts with `=` and is evaluated by Calc. Impress slides are
 0-indexed (a new deck starts with one slide); `set_slide_content` fills the
 title and bullet-body placeholders, `bullets` being one string per line.
-
-## Reference
-
-libre-mcp wraps LibreOffice's UNO API:
-
-- [LibreOffice API & SDK](https://api.libreoffice.org/) ·
-  [UNO IDL reference](https://api.libreoffice.org/docs/idl/ref/index.html)
-  (Writer `com.sun.star.text`, Calc `com.sun.star.sheet`, Impress
-  `com.sun.star.presentation`)
-- [Developer's Guide](https://wiki.documentfoundation.org/Documentation/DevGuide)
-- [Export filter names](https://help.libreoffice.org/latest/en-US/text/shared/guide/convertfilters.html)
-- [Model Context Protocol](https://modelcontextprotocol.io)
