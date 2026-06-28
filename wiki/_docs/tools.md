@@ -22,7 +22,13 @@ open until closed.
 | `find_and_replace` | `doc_id`, `search`, `replace`, `regex?` | `{count}` |
 | `set_cells` | `doc_id`, `cells`, `sheet?` | `{written}` |
 | `read_cells` | `doc_id`, `range`, `sheet?` | `{values}` |
+| `add_slide` | `doc_id`, `layout?` | `{index, count}` |
+| `set_slide_content` | `doc_id`, `index`, `title?`, `bullets?` | `{index}` |
+| `list_slides` | `doc_id` | `{slides, count}` |
+| `delete_slide` | `doc_id`, `index` | `{count}` |
 
-Formats: `pdf`, `docx`, `odt`, `xlsx`, `ods`, `csv`, `html`, `txt` (inferred from
-the path extension). `cells` is a list of `{cell, value?|formula?}` — a `formula`
-starts with `=` and is evaluated by Calc.
+Formats: `pdf`, `docx`, `odt`, `xlsx`, `ods`, `csv`, `html`, `txt`, `pptx`, `odp`
+(inferred from the path extension). `cells` is a list of `{cell, value?|formula?}`
+— a `formula` starts with `=` and is evaluated by Calc. Impress slides are
+0-indexed (a new deck starts with one slide); `set_slide_content` fills the
+title and bullet-body placeholders, `bullets` being one string per line.

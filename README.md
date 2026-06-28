@@ -86,6 +86,9 @@ edit → export**; documents stay open (referenced by `doc_id`) until closed.
 | `find_and_replace(doc_id, search, replace, regex?)` | Replace text |
 | `set_cells(doc_id, cells, sheet?)` | Write Calc cells/formulas |
 | `read_cells(doc_id, range, sheet?)` | Read a Calc range |
+| `add_slide(doc_id, layout?)` | Append an Impress slide |
+| `set_slide_content(doc_id, index, title?, bullets?)` | Set a slide's title/bullets |
+| `list_slides(doc_id)` / `delete_slide(doc_id, index)` | Inspect / remove slides |
 
 Full arguments and examples: the
 [tool reference](https://libre-mcp.krondor.org/docs/tools/).

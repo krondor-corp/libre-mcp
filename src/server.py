@@ -8,7 +8,7 @@ from mcp.server.fastmcp import FastMCP
 from src.config import Config
 from src.log import get_logger
 from src.office.session import get_session
-from src.tools import calc, document, writer
+from src.tools import calc, document, impress, writer
 
 log = get_logger(__name__)
 
@@ -40,4 +40,5 @@ def create_server(config: Config | None = None) -> FastMCP:
     document.register(mcp)
     writer.register(mcp)
     calc.register(mcp)
+    impress.register(mcp)
     return mcp

@@ -230,6 +230,62 @@ class Worker:
         data = [list(row) for row in rng.getDataArray()]
         return {"values": data}
 
+    # impress
+    def op_add_slide(self, args):
+        doc = self._doc(args["doc_id"])
+        slides = doc.getDrawPages()
+        idx = slides.getCount()
+        slides.insertNewByIndex(idx)
+        page = slides.getByIndex(idx)
+        layout = args.get("layout")
+        page.Layout = 1 if layout is None else int(layout)
+        return {"index": idx, "count": slides.getCount()}
+
+    def op_set_slide_content(self, args):
+        doc = self._doc(args["doc_id"])
+        index = int(args["index"])
+        page = doc.getDrawPages().getByIndex(index)
+        title = args.get("title")
+        bullets = args.get("bullets")
+        if title is not None or bullets is not None:
+            page.Layout = 1  # title + content placeholders
+        if title is not None:
+            page.getByIndex(0).setString(title)
+        if bullets is not None:
+            body = page.getByIndex(1).getText()
+            body.setString("")
+            cursor = body.createTextCursor()
+            for i, line in enumerate(bullets):
+                if i:
+                    body.insertControlCharacter(cursor, PARAGRAPH_BREAK, False)
+                body.insertString(cursor, str(line), False)
+        return {"index": index}
+
+    def op_list_slides(self, args):
+        slides = self._doc(args["doc_id"]).getDrawPages()
+        out = []
+        for i in range(slides.getCount()):
+            page = slides.getByIndex(i)
+            title = ""
+            for j in range(page.getCount()):
+                shape = page.getByIndex(j)
+                try:
+                    if shape.supportsService(
+                        "com.sun.star.presentation.TitleTextShape"
+                    ):
+                        title = shape.getString()
+                        break
+                except Exception:
+                    pass
+            out.append({"index": i, "title": title})
+        return {"slides": out, "count": slides.getCount()}
+
+    def op_delete_slide(self, args):
+        slides = self._doc(args["doc_id"]).getDrawPages()
+        page = slides.getByIndex(int(args["index"]))
+        slides.remove(page)
+        return {"count": slides.getCount()}
+
     # persistence
     def op_save_document(self, args):
         doc = self._doc(args["doc_id"])
