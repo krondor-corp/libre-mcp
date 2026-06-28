@@ -632,6 +632,12 @@ hr {
   text-decoration: none;
 }
 
+.hero-note {
+  font-size: 0.85rem;
+  color: hsl(var(--muted-foreground));
+  margin-top: 1.25rem;
+}
+
 /* === Features === */
 .features {
   padding: 2rem 0;

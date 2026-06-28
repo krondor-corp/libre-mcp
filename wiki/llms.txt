@@ -1,15 +1,78 @@
 # libre-mcp
 
-> A stdio MCP server for controlling LibreOffice (Writer, Calc & Impress) over UNO.
-> Runs LibreOffice headless and exposes document, spreadsheet, and presentation
-> tools to MCP clients; exports to PDF, DOCX, XLSX, PPTX, and more.
+> A stdio MCP server that controls a headless LibreOffice over UNO. Use it to
+> build and export real office deliverables — Writer documents, Calc
+> spreadsheets, and Impress presentations — then save them as PDF, DOCX, XLSX,
+> PPTX, and more. This file is the minimal guide an agent needs to use it.
 
-## Docs
+## Model
 
-- [Install & connect](https://libre-mcp.krondor.org/docs/install/)
-- [Tools](https://libre-mcp.krondor.org/docs/tools/)
-- [Development](https://libre-mcp.krondor.org/docs/development/)
+- Call `create_document` (or `open_document`) to get a `doc_id`. Every other tool
+  takes that `doc_id`. Documents stay open across calls until `close_document`.
+- Workflow: **create/open → edit → `export_document`** to the final format.
+- Export/save paths must be **absolute**. The format is inferred from the file
+  extension, or pass `format` explicitly.
+- LibreOffice starts on the first tool call. Reuse a `doc_id` to keep editing the
+  same document.
 
-## Source
+## Tools
 
-- [GitHub](https://github.com/krondor-corp/libre-mcp)
+Documents
+- `create_document(kind)` — kind: `writer` | `calc` | `impress` | `draw` → `{doc_id, kind}`
+- `open_document(path)` → `{doc_id, kind, path}`
+- `list_documents()` → `{documents}` · `document_info(doc_id)` → `{kind, url, modified}`
+- `save_document(doc_id, path?, format?)` — save in place, or a copy to `path`
+- `export_document(doc_id, path, format?)` — pdf, docx, xlsx, pptx, csv, odt/ods/odp, html, txt
+- `close_document(doc_id)`
+
+Writer
+- `get_text(doc_id)` → `{text}`
+- `insert_text(doc_id, text, paragraph_break?)` — append; set `paragraph_break` for a new paragraph
+- `find_and_replace(doc_id, search, replace, regex?)` → `{count}`
+
+Calc
+- `set_cells(doc_id, cells, sheet?)` — `cells`: `[{cell, value?|formula?}]`; a `formula` starts with `=`
+- `read_cells(doc_id, range, sheet?)` → `{values: [[...]]}`
+
+Impress
+- `add_slide(doc_id, layout?)` — a new deck already has slide `0` → `{index, count}`
+- `set_slide_content(doc_id, index, title?, bullets?)` — `bullets`: one string per line
+- `list_slides(doc_id)` → `{slides, count}` · `delete_slide(doc_id, index)`
+
+## Recipes
+
+Writer report → PDF
+```
+create_document   {"kind": "writer"}
+insert_text       {"doc_id": "doc-1", "text": "Quarterly Report"}
+insert_text       {"doc_id": "doc-1", "text": "Revenue grew 20% QoQ.", "paragraph_break": true}
+export_document   {"doc_id": "doc-1", "path": "/abs/path/report.pdf"}
+```
+
+Calc spreadsheet → XLSX
+```
+create_document   {"kind": "calc"}
+set_cells         {"doc_id": "doc-1", "cells": [
+                    {"cell": "A1", "value": "Item"}, {"cell": "B1", "value": "Qty"},
+                    {"cell": "B2", "value": 7}, {"cell": "B3", "formula": "=SUM(B2:B2)"}]}
+read_cells        {"doc_id": "doc-1", "range": "A1:B3"}
+export_document   {"doc_id": "doc-1", "path": "/abs/path/sheet.xlsx"}
+```
+
+Impress deck → PPTX
+```
+create_document   {"kind": "impress"}
+set_slide_content {"doc_id": "doc-1", "index": 0, "title": "Project Kickoff", "bullets": ["Goals", "Timeline", "Owners"]}
+add_slide         {"doc_id": "doc-1"}
+set_slide_content {"doc_id": "doc-1", "index": 1, "title": "Timeline", "bullets": ["Q1: design", "Q2: build", "Q3: ship"]}
+export_document   {"doc_id": "doc-1", "path": "/abs/path/deck.pptx"}
+```
+
+## Notes
+
+- Cells: a numeric `value` is written as a number, a string `value` as text, a
+  `formula` (starting `=`) is evaluated by Calc. `sheet` selects by name or
+  0-based index.
+- To revise an existing file, `open_document` it, edit, then `save_document`.
+
+Source: https://github.com/krondor-corp/libre-mcp

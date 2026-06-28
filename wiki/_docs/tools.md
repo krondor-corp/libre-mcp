@@ -8,6 +8,10 @@ description: The libre-mcp tool surface.
 Create or open a document to get a `doc_id`, edit it, then export. Documents stay
 open until closed.
 
+> **Building with an agent?** [llms.txt](/llms.txt) is a complete,
+> copy-pasteable guide to driving the server, with recipes for Writer, Calc, and
+> Impress deliverables.
+
 | Tool | Arguments | Returns |
 |------|-----------|---------|
 | `create_document` | `kind` (writer\|calc\|impress\|draw) | `{doc_id, kind}` |
