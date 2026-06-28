@@ -6,3 +6,4 @@
   items:
     - { title: Tools, slug: tools }
     - { title: Architecture, slug: architecture }
+    - { title: Development, slug: development }
