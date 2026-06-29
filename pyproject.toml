@@ -17,6 +17,7 @@ dev = [
     "black",
     "ruff",
     "ty",
+    "watchfiles>=0.21",
 ]
 build = [
     "pyinstaller>=6.0",

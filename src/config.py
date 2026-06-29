@@ -47,11 +47,15 @@ class Config:
 
     log_level: str
 
+    # debug mode (DEBUG log level) — enables dev hot-reload of the UNO worker
+    debug: bool
+
     def __str__(self) -> str:
         return (
             f"Config(soffice_path={self.soffice_path}, python_path={self.python_path}, "
             f"profile_dir={self.profile_dir}, keep_profile={self.keep_profile}, "
-            f"startup_timeout={self.startup_timeout}, log_level={self.log_level})"
+            f"startup_timeout={self.startup_timeout}, log_level={self.log_level}, "
+            f"debug={self.debug})"
         )
 
     def __init__(self) -> None:
@@ -67,3 +71,5 @@ class Config:
         self.startup_timeout = float(os.getenv("LIBRE_MCP_STARTUP_TIMEOUT", "30"))
 
         self.log_level = os.getenv("LIBRE_MCP_LOG_LEVEL", "INFO").upper()
+
+        self.debug = self.log_level == "DEBUG"

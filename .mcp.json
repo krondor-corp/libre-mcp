@@ -2,7 +2,7 @@
   "mcpServers": {
     "libre": {
       "command": "./bin/run.sh",
-      "args": [],
+      "args": ["--dev"],
       "env": {}
     }
   }

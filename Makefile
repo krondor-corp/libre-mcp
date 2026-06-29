@@ -19,8 +19,8 @@ install: binary ## Build and install the binary to INSTALL_DIR (default ~/.local
 	@echo "register with: claude mcp add libre -- $(INSTALL_DIR)/libre-mcp"
 
 .PHONY: dev
-dev: ## Run the MCP server over stdio (for manual / inspector use)
-	@./bin/dev.sh
+dev: ## Run the MCP server in dev mode (debug logging + hot-reload)
+	@./bin/run.sh --dev
 
 .PHONY: run
 run: ## Run the MCP server over stdio

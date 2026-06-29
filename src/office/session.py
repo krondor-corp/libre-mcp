@@ -94,6 +94,33 @@ class OfficeSession:
             assert self._worker
             return await self._worker.call(op, **args)
 
+    async def reload_worker(self) -> None:
+        """Restart just the UNO worker against the running soffice, picking up
+        edits to uno_worker.py. Used by dev hot-reload; open doc handles are
+        dropped. No-op if nothing is running yet (the next call starts fresh
+        with the new code anyway)."""
+        async with self._lock:
+            if not (self._soffice and self._soffice.is_alive()):
+                return
+            if self._worker:
+                await self._worker.stop()
+                self._worker = None
+            python_bin = discovery.find_bundled_python(
+                self.config.python_path, self._soffice.soffice_path
+            )
+            worker = WorkerClient(
+                python_bin,
+                discovery.worker_script(),
+                self._soffice.url,
+                connect_timeout=self.config.startup_timeout,
+            )
+            try:
+                await worker.start()
+                self._worker = worker
+                log.info("reloaded UNO worker (picked up uno_worker.py changes)")
+            except Exception as e:
+                log.error("worker reload failed: %s", e)
+
     async def shutdown(self) -> None:
         async with self._lock:
             await self._teardown_locked()
