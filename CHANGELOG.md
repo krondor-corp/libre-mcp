@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.0] - 2026-06-29
+
+### Features
+
+- Register two MCP servers — libre (installed) + libre-dev (source)
+
+### Ci
+
+- Drop Intel macOS from the release matrix (macos-13 runners retiring)
+
 ## [0.2.0] - 2026-06-29
 
 ### Bug Fixes
