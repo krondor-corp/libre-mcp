@@ -23,7 +23,8 @@ jobs:
         include:
           - { runner: ubuntu-latest,    arch: x86_64,  os_name: linux }
           - { runner: ubuntu-24.04-arm, arch: aarch64, os_name: linux }
-          - { runner: macos-13,         arch: x86_64,  os_name: darwin }
+          # Intel macOS (macos-13) runners are being retired and queue forever;
+          # Apple Silicon only. Intel-Mac users build from source (make install).
           - { runner: macos-14,         arch: aarch64, os_name: darwin }
 
     steps:

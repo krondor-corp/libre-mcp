@@ -13,6 +13,13 @@ main() {
 
     os="$(detect_os)"
     arch="$(detect_arch)"
+
+    if [ "$os" = "darwin" ] && [ "$arch" = "x86_64" ]; then
+        echo "No prebuilt binary for Intel macOS. Build from source:" >&2
+        echo "  git clone https://github.com/${REPO} && cd libre-mcp && make install" >&2
+        exit 1
+    fi
+
     version="$(latest_version)"
 
     echo "Installing ${BINARY} ${version} (${arch}-${os})..."
