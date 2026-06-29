@@ -15,15 +15,18 @@ deps and per-branch profile isolation, so multiple worktrees run independently.
 ## Hot-reload
 
 In dev mode (`bin/run.sh --dev`, i.e. `LIBRE_MCP_LOG_LEVEL=DEBUG`) the server
-watches `src/office/uno_worker.py` and restarts the worker on change, so edits to
-the **document logic** (the `op_*` methods — where the real work is) take effect
-on the **next tool call, with no MCP reconnect**. Tools are thin pass-throughs to
-those ops, so this covers the common iteration loop.
+watches the source and reloads, so you iterate without reconnecting:
 
-Changes to the **tool surface** (adding/renaming a tool, its args) still need a
-reconnect — the tool list is sent to the client once at `initialize` and cached
-client-side, which no stdio server can swap live. Reconnect with `/mcp` →
-reconnect `libre`, or restart the session.
+- **`src/office/uno_worker.py`** (the `op_*` document logic — where the real work
+  is) → the UNO worker restarts; live on the **next tool call**. Open `doc_id`s
+  are dropped on reload, so recreate them. Tools are thin pass-throughs to these
+  ops, so this is the common loop.
+- **`src/tools/*.py`** (add / rename / change a tool in an existing group) → the
+  tool surface is re-registered and the server pushes
+  `notifications/tools/list_changed`, so the client re-fetches. No reconnect.
+
+A **brand-new tool group file** (a new `src/tools/<x>.py`) still needs a restart
+— add it to `_TOOL_MODULES` in `src/server.py`, then `/mcp` → reconnect `libre`.
 
 `make dev` runs the same `./bin/run.sh --dev` standalone.
 

@@ -30,6 +30,27 @@ and the session/worker integration tests. For interactive testing use the
 registered `libre` MCP server or `make inspect`; see `DEVELOPMENT.md` and the
 `test-libre-mcp` skill (`.claude/skills/test-libre-mcp/SKILL.md`).
 
+## Dev hot-reload (tight feedback loop)
+
+The committed `.mcp.json` runs `./bin/run.sh --dev` (debug mode), and in debug
+mode the server watches the source and reloads so you can iterate without
+reconnecting:
+
+- **Edit an `op_*` method in `src/office/uno_worker.py`** (the document logic) →
+  the UNO worker restarts; the change is live on the **next tool call**. Open
+  `doc_id`s are dropped on reload — just recreate. This is the common loop, since
+  tools are thin pass-throughs to these ops.
+- **Edit a tool in `src/tools/*.py`** (add / rename / change a tool in an
+  existing group file) → the tool surface is re-registered and the server pushes
+  `notifications/tools/list_changed` so the client re-fetches. No reconnect.
+- **A brand-new tool *group* file** (a new `src/tools/<x>.py`) still needs a
+  server restart — it isn't imported until you add it to `_TOOL_MODULES` in
+  `src/server.py`. Reconnect with `/mcp` → reconnect `libre`.
+
+Hot-reload only runs in debug mode (`LIBRE_MCP_LOG_LEVEL=DEBUG`, set by
+`--dev`); the shipped binary never reloads. Mechanism lives in `src/server.py`
+(`_watch_and_reload`) + `OfficeSession.reload_worker`.
+
 ## When you implement a feature
 
 After adding or changing a tool, export format, or document type, **update the
