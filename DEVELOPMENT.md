@@ -1,8 +1,13 @@
 # Development
 
 **Clone and open the repo in Claude Code — you have a live dev server with
-hot-reload.** The committed `.mcp.json` runs `./bin/run.sh --dev`, which launches
-the server from your working tree (`uv run libre-mcp`) over stdio in debug mode.
+hot-reload.** The committed `.mcp.json` registers two servers:
+
+- **`libre`** — the installed `libre-mcp` binary (stable; needs `make install`
+  or `install.sh` first).
+- **`libre-dev`** — `./bin/run.sh --dev`, run from your working tree
+  (`uv run libre-mcp`) over stdio in debug mode. **Use this while developing** —
+  it hot-reloads (below).
 
 ```bash
 git clone https://github.com/krondor-corp/libre-mcp

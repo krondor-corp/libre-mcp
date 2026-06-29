@@ -1,6 +1,11 @@
 {
   "mcpServers": {
     "libre": {
+      "command": "libre-mcp",
+      "args": [],
+      "env": {}
+    },
+    "libre-dev": {
       "command": "./bin/run.sh",
       "args": ["--dev"],
       "env": {}

@@ -20,8 +20,9 @@ impress), each backed by an `op_*` method in `uno_worker.py`.
 ## Setup, build, test
 
 You need **LibreOffice installed** to develop (the live tests drive it). The
-`libre` MCP server is already registered via the committed `.mcp.json`, so a
-clone opened in Claude Code can call it directly.
+committed `.mcp.json` registers two servers: **`libre`** (the installed
+`libre-mcp` binary, stable) and **`libre-dev`** (`./bin/run.sh --dev`, run from
+source with hot-reload — use this while developing).
 
 ```bash
 make sync          # install dev deps (uv)
@@ -35,7 +36,7 @@ registered `libre` MCP server or `make inspect`. See `DEVELOPMENT.md`.
 
 ## Dev hot-reload (tight feedback loop)
 
-The committed `.mcp.json` runs `./bin/run.sh --dev` (debug mode), and in debug
+The **`libre-dev`** server runs `./bin/run.sh --dev` (debug mode), and in debug
 mode the server watches the source and reloads so you can iterate without
 reconnecting:
 
