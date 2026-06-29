@@ -19,16 +19,19 @@ impress), each backed by an `op_*` method in `uno_worker.py`.
 
 ## Setup, build, test
 
+You need **LibreOffice installed** to develop (the live tests drive it). The
+`libre` MCP server is already registered via the committed `.mcp.json`, so a
+clone opened in Claude Code can call it directly.
+
 ```bash
 make sync          # install dev deps (uv)
 make check         # black, ruff, ty, pytest (live integration runs if LibreOffice is present)
-make binary        # build the standalone binary -> dist/libre-mcp
+make install       # build + install the binary to ~/.local/bin
 ```
 
 `make check` must pass before committing — it runs the MCP-stdio protocol test
 and the session/worker integration tests. For interactive testing use the
-registered `libre` MCP server or `make inspect`; see `DEVELOPMENT.md` and the
-`test-libre-mcp` skill (`.claude/skills/test-libre-mcp/SKILL.md`).
+registered `libre` MCP server or `make inspect`. See `DEVELOPMENT.md`.
 
 ## Dev hot-reload (tight feedback loop)
 
@@ -83,10 +86,10 @@ Claude Code:
   most agents (OpenAI Codex, Cursor, GitHub Copilot, Gemini CLI, Zed, Windsurf,
   …). Claude Code reads `CLAUDE.md`, which just imports this file (`@AGENTS.md`),
   so both see the same content with no duplication.
-- **Skills** — `/docs` and `/test-libre-mcp` follow the open
+- **Skills** — the `/docs` skill follows the open
   [agentskills.io](https://agentskills.io) `SKILL.md` spec (required frontmatter:
-  `name` + `description`; keep the body short). They live in `.claude/skills/`
-  (read by Claude Code, and auto-discovered by GitHub Copilot and Cursor) and are
+  `name` + `description`; keep the body short). It lives in `.claude/skills/`
+  (read by Claude Code, and auto-discovered by GitHub Copilot and Cursor) and is
   exposed at `.agents/skills/` (a symlink) for OpenAI Codex.
 
 To fan these out to directory-of-rules tools (`.cursor/rules/`,

@@ -16,6 +16,12 @@ curl -fsSL https://raw.githubusercontent.com/krondor-corp/libre-mcp/main/install
 Installs a prebuilt, self-contained binary to `~/.local/bin` (no Python needed on
 the host). Update in place with `libre-mcp update`.
 
+From a source checkout instead (needs [uv](https://docs.astral.sh/uv/)):
+
+```bash
+make install      # build + install the binary to ~/.local/bin
+```
+
 ## Connect it to your coding tool
 
 `libre-mcp` is a stdio MCP server, so any MCP-capable client can run it. Make
