@@ -283,8 +283,80 @@ class Worker:
         doc = self._doc(args["doc_id"])
         sheet = self._sheet(doc, args.get("sheet"))
         rng = sheet.getCellRangeByName(args["range"])
+        if args.get("formula"):
+            addr = rng.getRangeAddress()
+            data = [
+                [
+                    sheet.getCellByPosition(c, r).getFormula()
+                    for c in range(addr.StartColumn, addr.EndColumn + 1)
+                ]
+                for r in range(addr.StartRow, addr.EndRow + 1)
+            ]
+            return {"values": data}
         data = [list(row) for row in rng.getDataArray()]
         return {"values": data}
+
+    def op_add_sheet(self, args):
+        doc = self._doc(args["doc_id"])
+        sheets = doc.getSheets()
+        name = args["name"]
+        index = args.get("index")
+        sheets.insertNewByName(name, sheets.getCount() if index is None else int(index))
+        return {"name": name, "count": sheets.getCount()}
+
+    def _number_format(self, doc, fmt):
+        from com.sun.star.lang import Locale
+
+        formats = doc.getNumberFormats()
+        loc = Locale()
+        key = formats.queryKey(fmt, loc, False)
+        if key == -1:
+            key = formats.addNew(fmt, loc)
+        return key
+
+    def op_style_cells(self, args):
+        doc = self._doc(args["doc_id"])
+        sheet = self._sheet(doc, args.get("sheet"))
+        rng = sheet.getCellRangeByName(args["range"])
+        if args.get("bold") is not None:
+            from com.sun.star.awt.FontWeight import BOLD, NORMAL
+
+            rng.CharWeight = BOLD if args["bold"] else NORMAL
+        if args.get("italic"):
+            from com.sun.star.awt.FontSlant import ITALIC
+
+            rng.CharPosture = ITALIC
+        if args.get("color") is not None:
+            rng.CharColor = _color(args["color"])
+        if args.get("size"):
+            rng.CharHeight = float(args["size"])
+        if args.get("font"):
+            rng.CharFontName = args["font"]
+        if args.get("fill") is not None:
+            rng.CellBackColor = _color(args["fill"])
+        if args.get("align"):
+            from com.sun.star.table.CellHoriJustify import CENTER, LEFT, RIGHT
+
+            rng.HoriJustify = {"left": LEFT, "center": CENTER, "right": RIGHT}.get(
+                args["align"], LEFT
+            )
+        if args.get("number_format"):
+            rng.NumberFormat = self._number_format(doc, args["number_format"])
+        return {"ok": True}
+
+    def op_set_column_width(self, args):
+        doc = self._doc(args["doc_id"])
+        cols = self._sheet(doc, args.get("sheet")).getColumns()
+        width = _cm(args["width_cm"])
+        spec = str(args["columns"]).upper()
+        if ":" in spec:
+            a, b = spec.split(":")
+            start, end = ord(a) - 65, ord(b) - 65
+        else:
+            start = end = ord(spec) - 65
+        for i in range(start, end + 1):
+            cols.getByIndex(i).Width = width
+        return {"ok": True}
 
     # impress
     def op_add_slide(self, args):
