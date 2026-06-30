@@ -11,14 +11,22 @@ types. The goal: a human reading the README/wiki **and** an agent reading
 
 ## Audience — keep the wiki user-facing
 
-The wiki (`wiki/`) and the README are for **users of the server**, not
-contributors. Describe *what the tools do and how to use them* — never internal
-implementation. **Do not reference source files, internal symbols, or code
-structure** in the wiki: no `src/...` paths, no `.py` filenames, no map/function
-names (`_FILTERS`, `op_*`), no `.claude/...`. Implementation notes belong in
-`AGENTS.md` / code comments, not the published docs. (`wiki/llms.txt` is user-
-facing too: it may link the public GitHub repo and the UNO API, but not name
-internal files or symbols.)
+The wiki (`wiki/`) and the README are for **people who want to use the tool** —
+not contributors, and not necessarily technical. Describe *what you can do and
+how*, in plain language.
+
+- **No source internals.** No `src/...` paths, `.py` filenames, map/function
+  names (`_FILTERS`, `op_*`), or `.claude/...`. Implementation notes belong in
+  `AGENTS.md` / code comments.
+- **No mechanism jargon in the prose pages.** On conceptual pages, write for a
+  non-technical reader: avoid "process", "in-memory model", "revision counter",
+  raw return shapes (`{conflict: true, ...}`), lock-file mechanics, and
+  comparisons to other software's internals. Say what the user sees and does.
+  (The tool-reference tables are the exception — they list exact arguments and
+  return fields on purpose.)
+
+`wiki/llms.txt` is also user-facing (for agents driving the server): it may link
+the public GitHub repo and the UNO API, but must not name internal files/symbols.
 
 ## 1. Tool tables (must match the actual tools)
 

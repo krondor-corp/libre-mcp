@@ -1,53 +1,33 @@
 ---
-title: Live editing & concurrency
+title: Live editing
 slug: live-editing
 order: 4
-description: How live editing works, and how the server avoids clobbering human edits.
+description: Watch edits happen in real time, and how your work stays safe.
 ---
 
-The server drives **one** LibreOffice instance in an isolated profile — its own
-process, separate from your everyday LibreOffice. That single fact shapes both
-how you watch edits happen live and how the server keeps an agent from
-overwriting your changes. Everything below holds for **every document kind**
-(Writer, Calc, Impress, Draw).
+You can watch the assistant build a document in real time — and edit right
+alongside it. Two things make that smooth, and one thing to avoid.
 
-## One shared window for live editing
+## Watch edits happen live
 
-In live mode (`show: true`) the server opens a **visible** window backed by the
-*same* document model it edits through tools. Edit in that window and the agent
-sees your changes instantly; the agent edits and you watch them land in real
-time. It's one model, two editors.
+In live mode, the assistant opens the document in a window on your screen. As it
+works, you see every change appear instantly — text, tables, slides, all of it.
+You can type in that same window yourself, and the assistant sees what you add
+right away too.
 
-Opening the *same file* in your **own** LibreOffice is different: that's a
-separate process with its own in-memory copy. The two instances can't see each
-other's unsaved edits — local LibreOffice has no real-time co-editing (that's a
-cloud / Collabora feature). The only bridge between two instances is the file on
-disk: save in one, reopen in the other. Only one instance can hold a file
-read-write at a time (the `.~lock` file); a second open is read-only or a copy.
+One catch: **edit the window the assistant opened for you** — not a copy you open
+yourself. If you open the same file separately (say, by double-clicking it on
+your desktop), you get your own private copy. From then on, you and the assistant
+can't see each other's changes until one of you saves and the other reopens. So
+to follow along live, stay in the window it opened.
 
-> **So:** to follow along live, edit the window the server opens — not a copy you
-> open yourself.
+## Your work stays safe
 
-## The conflict guard
+The assistant won't write over what you're doing. If you've changed the document
+since it last looked, it notices, reads your version first, and carries on from
+there — instead of clobbering your edit.
 
-Every open document carries a **revision counter** (`rev`) that is bumped on
-*any* change — an agent tool call **or** a human typing in the live window. The
-server also records the revision it last acted on (`seen`).
+It also won't close a document with unsaved changes without you saying so, so
+nothing you've typed gets thrown away by accident.
 
-- A tool that would **mutate** a document whose `rev` has advanced past `seen`
-  (you changed it since the agent last looked) is **refused** — it returns
-  `{conflict: true, warning, rev, seen}` instead of editing.
-- The agent recovers by **re-reading** the document (`get_text`, `read_cells`,
-  `read_slide`). A read resyncs `seen` to the current `rev` and surfaces your
-  change, so the agent merges instead of clobbering — then retries the edit.
-- `force: true` overrides the guard without re-reading. It's rarely the right
-  move; prefer re-reading.
-
-`document_info` reports `modified`, `rev`, and `seen` at any time, so the state
-is always inspectable.
-
-## Closing is guarded too
-
-`close_document` **refuses to discard unsaved changes** unless you pass
-`force: true`. Save first with `save_document` so in-flight work — yours or the
-agent's — is never silently thrown away.
+This works the same for documents, spreadsheets, and presentations.
