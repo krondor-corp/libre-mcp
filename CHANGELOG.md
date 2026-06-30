@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.0] - 2026-06-30
+
+### Documentation
+
+- Mark Impress read supported; keep wiki free of source internals
+
+### Features
+
+- Register two MCP servers — libre (installed) + libre-dev (source)
+- Impress graphics — backgrounds, gradients, text boxes, shapes, images
+- Rich Writer tools, live/visible mode, and per-doc show control
+- Calc formatting + formula reading
+- Optimistic-concurrency guard so live edits aren't clobbered
+- Read_slide tool + carve live-editing into its own wiki page
+
+### Ci
+
+- Drop Intel macOS from the release matrix (macos-13 runners retiring)
+
 ## [0.2.0] - 2026-06-29
 
 ### Bug Fixes
