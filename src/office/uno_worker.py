@@ -65,6 +65,27 @@ _FACTORY = {
     "draw": "private:factory/sdraw",
 }
 
+# Slide presets, (width, height) in 1/100 mm.
+_PRESET_SIZES = {"16:9": (33867, 19050), "4:3": (25400, 19050)}
+
+# Drawing shape services keyed by a short name.
+_SHAPES = {
+    "rect": "com.sun.star.drawing.RectangleShape",
+    "round": "com.sun.star.drawing.RectangleShape",
+    "ellipse": "com.sun.star.drawing.EllipseShape",
+    "line": "com.sun.star.drawing.LineShape",
+    "text": "com.sun.star.drawing.TextShape",
+}
+
+
+def _color(value):
+    """Accept '#RRGGBB' (or an int) and return an int RGB."""
+    if value is None:
+        return None
+    if isinstance(value, int):
+        return value
+    return int(str(value).lstrip("#"), 16)
+
 
 class Worker:
     def __init__(self, url: str) -> None:
@@ -285,6 +306,193 @@ class Worker:
         page = slides.getByIndex(int(args["index"]))
         slides.remove(page)
         return {"count": slides.getCount()}
+
+    # impress graphics --------------------------------------------------
+    # Positions/sizes are percentages (0-100) of the slide; colors are hex.
+    def _page(self, doc, index):
+        return doc.getDrawPages().getByIndex(int(index))
+
+    def _place(self, shape, page, x, y, w, h):
+        from com.sun.star.awt import Point, Size
+
+        shape.Position = Point(int(page.Width * x / 100), int(page.Height * y / 100))
+        shape.Size = Size(int(page.Width * w / 100), int(page.Height * h / 100))
+
+    def _apply_fill(self, shape, fill, fill2=None, angle=0):
+        from com.sun.star.drawing.FillStyle import GRADIENT, NONE, SOLID
+
+        if fill is None:
+            shape.FillStyle = NONE
+            return
+        if fill2 is not None:
+            from com.sun.star.awt import Gradient
+            from com.sun.star.awt.GradientStyle import LINEAR
+
+            g = Gradient()
+            g.Style = LINEAR
+            g.StartColor = _color(fill)
+            g.EndColor = _color(fill2)
+            g.Angle = int((angle or 0) * 10)
+            g.StartIntensity = 100
+            g.EndIntensity = 100
+            g.Border = 0
+            g.XOffset = 50
+            g.YOffset = 50
+            g.StepCount = 0
+            shape.FillStyle = GRADIENT
+            shape.FillGradient = g
+        else:
+            shape.FillStyle = SOLID
+            shape.FillColor = _color(fill)
+
+    def _style_text(self, shape, text, color, size, bold, italic, align, valign, font):
+        from com.sun.star.awt.FontSlant import ITALIC
+        from com.sun.star.awt.FontSlant import NONE as SLANT_NONE
+        from com.sun.star.awt.FontWeight import BOLD, NORMAL
+        from com.sun.star.drawing.TextVerticalAdjust import BOTTOM
+        from com.sun.star.drawing.TextVerticalAdjust import CENTER as VCENTER
+        from com.sun.star.drawing.TextVerticalAdjust import TOP
+        from com.sun.star.style.ParagraphAdjust import CENTER, LEFT, RIGHT
+
+        adjust = {"left": LEFT, "center": CENTER, "right": RIGHT}.get(align, LEFT)
+        vadj = {"top": TOP, "center": VCENTER, "bottom": BOTTOM}.get(valign, TOP)
+        try:
+            shape.TextVerticalAdjust = vadj
+        except Exception:
+            pass
+        t = shape.getText()
+        t.setString(str(text))
+        cur = t.createTextCursor()
+        cur.gotoStart(False)
+        cur.gotoEnd(True)
+        if size:
+            cur.CharHeight = float(size)
+        if color is not None:
+            cur.CharColor = _color(color)
+        cur.CharWeight = BOLD if bold else NORMAL
+        cur.CharPosture = ITALIC if italic else SLANT_NONE
+        if font:
+            cur.CharFontName = font
+        cur.ParaAdjust = adjust
+
+    def op_set_presentation_size(self, args):
+        doc = self._doc(args["doc_id"])
+        w, h = _PRESET_SIZES.get(args.get("preset", "16:9"), _PRESET_SIZES["16:9"])
+        slides = doc.getDrawPages()
+        for i in range(slides.getCount()):
+            page = slides.getByIndex(i)
+            page.Width = w
+            page.Height = h
+        return {"width": w, "height": h}
+
+    def op_set_slide_background(self, args):
+        doc = self._doc(args["doc_id"])
+        page = self._page(doc, args["slide"])
+        from com.sun.star.awt import Point, Size
+        from com.sun.star.drawing.LineStyle import NONE as LINE_NONE
+
+        rect = doc.createInstance("com.sun.star.drawing.RectangleShape")
+        page.add(rect)
+        rect.Position = Point(0, 0)
+        rect.Size = Size(page.Width, page.Height)
+        rect.LineStyle = LINE_NONE
+        self._apply_fill(
+            rect, args.get("color"), args.get("color2"), args.get("angle", 0)
+        )
+        return {"ok": True}
+
+    def op_add_textbox(self, args):
+        doc = self._doc(args["doc_id"])
+        page = self._page(doc, args["slide"])
+        from com.sun.star.drawing.FillStyle import NONE as FILL_NONE
+        from com.sun.star.drawing.LineStyle import NONE as LINE_NONE
+
+        shape = doc.createInstance("com.sun.star.drawing.TextShape")
+        page.add(shape)
+        self._place(shape, page, args["x"], args["y"], args["w"], args["h"])
+        shape.FillStyle = FILL_NONE
+        shape.LineStyle = LINE_NONE
+        try:
+            shape.TextAutoGrowHeight = False
+            shape.TextAutoGrowWidth = False
+            shape.TextWordWrap = True
+        except Exception:
+            pass
+        self._style_text(
+            shape,
+            args["text"],
+            args.get("color", "#000000"),
+            args.get("size", 18),
+            args.get("bold", False),
+            args.get("italic", False),
+            args.get("align", "left"),
+            args.get("valign", "top"),
+            args.get("font"),
+        )
+        return {"ok": True}
+
+    def op_add_shape(self, args):
+        doc = self._doc(args["doc_id"])
+        page = self._page(doc, args["slide"])
+        from com.sun.star.drawing.FillStyle import NONE as FILL_NONE
+        from com.sun.star.drawing.LineStyle import NONE as LINE_NONE
+        from com.sun.star.drawing.LineStyle import SOLID as LINE_SOLID
+
+        kind = args.get("shape", "rect")
+        shape = doc.createInstance(_SHAPES.get(kind, _SHAPES["rect"]))
+        page.add(shape)
+        self._place(shape, page, args["x"], args["y"], args["w"], args["h"])
+        if kind == "round":
+            try:
+                shape.CornerRadius = int(args.get("corner", 300))
+            except Exception:
+                pass
+        if kind == "line":
+            shape.FillStyle = FILL_NONE
+        else:
+            self._apply_fill(
+                shape,
+                args.get("fill", "#888888"),
+                args.get("fill2"),
+                args.get("angle", 0),
+            )
+        line = args.get("line")
+        if line is not None or kind == "line":
+            shape.LineStyle = LINE_SOLID
+            shape.LineColor = _color(
+                line if line is not None else args.get("fill", "#000000")
+            )
+            shape.LineWidth = int(args.get("line_width", 40))
+        else:
+            shape.LineStyle = LINE_NONE
+        if args.get("text"):
+            self._style_text(
+                shape,
+                args["text"],
+                args.get("text_color", "#ffffff"),
+                args.get("text_size", 16),
+                args.get("text_bold", False),
+                False,
+                args.get("text_align", "center"),
+                "center",
+                args.get("font"),
+            )
+        return {"ok": True}
+
+    def op_add_image(self, args):
+        doc = self._doc(args["doc_id"])
+        page = self._page(doc, args["slide"])
+        shape = doc.createInstance("com.sun.star.drawing.GraphicObjectShape")
+        page.add(shape)
+        self._place(shape, page, args["x"], args["y"], args["w"], args["h"])
+        provider = self.ctx.ServiceManager.createInstanceWithContext(
+            "com.sun.star.graphic.GraphicProvider", self.ctx
+        )
+        prop = PropertyValue()
+        prop.Name = "URL"
+        prop.Value = uno.systemPathToFileUrl(args["path"])
+        shape.Graphic = provider.queryGraphic((prop,))
+        return {"ok": True}
 
     # persistence
     def op_save_document(self, args):

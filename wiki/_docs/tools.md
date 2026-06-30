@@ -30,9 +30,21 @@ open until closed.
 | `set_slide_content` | `doc_id`, `index`, `title?`, `bullets?` | `{index}` |
 | `list_slides` | `doc_id` | `{slides, count}` |
 | `delete_slide` | `doc_id`, `index` | `{count}` |
+| `set_presentation_size` | `doc_id`, `preset` | `{width, height}` |
+| `set_slide_background` | `doc_id`, `slide`, `color`, `color2?`, `angle?` | `{ok}` |
+| `add_textbox` | `doc_id`, `slide`, `text`, `x`, `y`, `w`, `h`, `size?`, `color?`, `bold?`, `align?`, `valign?`, `font?` | `{ok}` |
+| `add_shape` | `doc_id`, `slide`, `x`, `y`, `w`, `h`, `shape?`, `fill?`, `fill2?`, `line?`, `corner?`, `text?` | `{ok}` |
+| `add_image` | `doc_id`, `slide`, `path`, `x`, `y`, `w`, `h` | `{ok}` |
 
 Formats: `pdf`, `docx`, `odt`, `xlsx`, `ods`, `csv`, `html`, `txt`, `pptx`, `odp`
 (inferred from the path extension). `cells` is a list of `{cell, value?|formula?}`
-— a `formula` starts with `=` and is evaluated by Calc. Impress slides are
-0-indexed (a new deck starts with one slide); `set_slide_content` fills the
-title and bullet-body placeholders, `bullets` being one string per line.
+— a `formula` starts with `=` and is evaluated by Calc.
+
+## Slide graphics
+
+Slides are 0-indexed (a new deck starts with one slide). `set_slide_content`
+fills the title/bullet placeholders; for **engaging, themed decks** use the
+graphics tools. Their `x`/`y`/`w`/`h` are **percent (0-100)** of the slide and
+colors are **hex** (`#c2410c`). `shape` is `rect`|`round`|`ellipse`|`line`. Build
+each slide **background-first** (it stacks to the back), then layer text and
+shapes on top. See the [agent guide](/llms.txt) for copy-pasteable deck recipes.

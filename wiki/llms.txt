@@ -34,10 +34,18 @@ Calc
 - `set_cells(doc_id, cells, sheet?)` — `cells`: `[{cell, value?|formula?}]`; a `formula` starts with `=`
 - `read_cells(doc_id, range, sheet?)` → `{values: [[...]]}`
 
-Impress
+Impress — basic
 - `add_slide(doc_id, layout?)` — a new deck already has slide `0` → `{index, count}`
 - `set_slide_content(doc_id, index, title?, bullets?)` — `bullets`: one string per line
 - `list_slides(doc_id)` → `{slides, count}` · `delete_slide(doc_id, index)`
+
+Impress — graphics (for designed, engaging decks). x/y/w/h are PERCENT (0-100)
+of the slide; colors are hex.
+- `set_presentation_size(doc_id, preset)` — `"16:9"` (default) or `"4:3"`; call once first
+- `set_slide_background(doc_id, slide, color, color2?, angle?)` — solid, or gradient color→color2 at `angle`°; call FIRST on each slide (stacks to the back)
+- `add_textbox(doc_id, slide, text, x, y, w, h, size?, color?, bold?, italic?, align?, valign?, font?)` — `size` in points; `align` left|center|right; `valign` top|center|bottom; `\n` for line breaks
+- `add_shape(doc_id, slide, x, y, w, h, shape?, fill?, fill2?, angle?, corner?, line?, line_width?, text?, text_color?, text_size?, text_bold?)` — `shape` rect|round|ellipse|line; `fill2` makes a gradient; `text` is centered inside
+- `add_image(doc_id, slide, path, x, y, w, h)` — absolute `path`
 
 ## Recipes
 
@@ -67,6 +75,55 @@ add_slide         {"doc_id": "doc-1"}
 set_slide_content {"doc_id": "doc-1", "index": 1, "title": "Timeline", "bullets": ["Q1: design", "Q2: build", "Q3: ship"]}
 export_document   {"doc_id": "doc-1", "path": "/abs/path/deck.pptx"}
 ```
+
+## Engaging presentations (patterns)
+
+`set_slide_content` (title + bullets) is fine for plain decks. For decks that
+actually look designed, skip it and compose with the graphics tools. What works:
+
+- **Pick a palette and reuse it on every slide** — one dark background, one
+  accent, a light "ink", and a muted grey. E.g. bg `#15110f`, accent `#c2410c`,
+  ink `#f4efe7`, muted `#9a8f84`. Consistency is what reads as "designed".
+- **Background-first.** Call `set_slide_background` before anything else on a
+  slide (it stacks behind). A subtle gradient (`color2` + `angle`) adds depth.
+- **Position by percent**, and keep a margin (≈6-8% left). For a *square* element
+  on a 16:9 slide, width% ≈ height% × 0.5625 (the slide is wider than tall).
+- **A repeated motif ties slides together** — e.g. a small rust accent bar under
+  every title, and a `NN — SECTION` eyebrow label in the accent color.
+
+Slide archetypes (each = background + a few shapes/textboxes):
+- **Title:** big bold wordmark (size 60-80) + accent bar + grey subtitle. A logo
+  can be drawn from `round` shapes (a 3×3 grid of squares).
+- **Statement:** a thin full-height accent bar at x≈0, an eyebrow, one large line.
+- **Diagram:** `round` shapes as boxes (highlight the key one in the accent fill);
+  thin `rect`s as connectors drawn BEFORE the boxes so the boxes sit on top; small
+  grey textboxes label the connectors.
+- **Cards:** a row of `round` shapes (`fill` a touch lighter than the bg, `line`
+  subtle), each with an eyebrow + title + description textbox.
+- **Big stat:** a huge number (size 90+) with an accent bar and a grey caption.
+- **Closing / install:** a dark `round` "terminal" box with a monospace
+  (`font: "Menlo"`) command inside.
+
+Themed deck → PPTX (one slide of each, abridged)
+```
+create_document        {"kind": "impress"}
+set_presentation_size  {"doc_id": "doc-1", "preset": "16:9"}
+set_slide_background   {"doc_id": "doc-1", "slide": 0, "color": "#15110f", "color2": "#2a201a", "angle": 115}
+add_textbox            {"doc_id": "doc-1", "slide": 0, "text": "Project Atlas", "x": 7, "y": 40, "w": 80, "h": 16, "size": 72, "color": "#f4efe7", "bold": true, "valign": "center"}
+add_shape              {"doc_id": "doc-1", "slide": 0, "shape": "rect", "x": 7, "y": 60, "w": 13, "h": 1.3, "fill": "#c2410c"}
+add_textbox            {"doc_id": "doc-1", "slide": 0, "text": "Q3 review", "x": 7, "y": 64, "w": 60, "h": 8, "size": 23, "color": "#9a8f84"}
+add_slide              {"doc_id": "doc-1", "layout": 20}
+set_slide_background   {"doc_id": "doc-1", "slide": 1, "color": "#15110f"}
+add_shape              {"doc_id": "doc-1", "slide": 1, "shape": "round", "x": 8, "y": 40, "w": 22, "h": 16, "fill": "#221b16", "line": "#5c4f45", "text": "Input", "text_color": "#f4efe7"}
+add_shape              {"doc_id": "doc-1", "slide": 1, "shape": "round", "x": 39, "y": 40, "w": 22, "h": 16, "fill": "#c2410c", "text": "Atlas", "text_bold": true}
+add_shape              {"doc_id": "doc-1", "slide": 1, "shape": "rect", "x": 30, "y": 47.5, "w": 9, "h": 0.5, "fill": "#6b5d52"}
+export_document        {"doc_id": "doc-1", "path": "/abs/path/deck.pptx"}
+```
+
+Documents with images/diagrams: the graphics tools above target Impress/Draw
+slides. Rich Writer documents (embedded images, drawn diagrams in a text doc)
+aren't exposed yet — build the visual as an Impress/Draw page and export, or
+open an issue. (`insert_text` / `find_and_replace` cover Writer text today.)
 
 ## Notes
 

@@ -96,8 +96,15 @@ typical flow is **create/open → edit → export** (e.g. build a deck and save 
 | `add_slide(doc_id, layout?)` | Append an Impress slide |
 | `set_slide_content(doc_id, index, title?, bullets?)` | Set a slide's title/bullets |
 | `list_slides(doc_id)` / `delete_slide(doc_id, index)` | Inspect / remove slides |
+| `set_presentation_size(doc_id, preset)` | Slide aspect (16:9 / 4:3) |
+| `set_slide_background(doc_id, slide, color, color2?)` | Solid or gradient background |
+| `add_textbox(doc_id, slide, text, x, y, w, h, …)` | Positioned, styled text |
+| `add_shape(doc_id, slide, x, y, w, h, shape, fill, …)` | Rect/round/ellipse/line (+ text) |
+| `add_image(doc_id, slide, path, x, y, w, h)` | Place an image on a slide |
 
-Full arguments and examples: the
+Slide graphics position by **percent (0-100)** of the slide and take **hex
+colors** — enough to build themed, graphic-rich decks (see
+[this one](https://libre-mcp.krondor.org/docs/tools/)). Full arguments: the
 [tool reference](https://libre-mcp.krondor.org/docs/tools/).
 
 ## Links
