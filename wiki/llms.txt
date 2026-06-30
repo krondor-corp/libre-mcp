@@ -47,6 +47,7 @@ Impress — basic
 - `add_slide(doc_id, layout?)` — a new deck already has slide `0` → `{index, count}`
 - `set_slide_content(doc_id, index, title?, bullets?)` — `bullets`: one string per line
 - `list_slides(doc_id)` → `{slides, count}` · `delete_slide(doc_id, index)`
+- `read_slide(doc_id, index)` → `{index, title, bullets, text}` — `text` is every string on the slide (incl. graphics-built textboxes/shape labels)
 
 Impress — graphics (for designed, engaging decks). x/y/w/h are PERCENT (0-100)
 of the slide; colors are hex.

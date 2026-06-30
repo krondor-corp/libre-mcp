@@ -477,6 +477,38 @@ class Worker:
             out.append({"index": i, "title": title})
         return {"slides": out, "count": slides.getCount()}
 
+    def op_read_slide(self, args):
+        index = int(args["index"])
+        page = self._doc(args["doc_id"]).getDrawPages().getByIndex(index)
+        title = ""
+        bullets = []
+        texts = []
+        for j in range(page.getCount()):
+            shape = page.getByIndex(j)
+            try:
+                s = shape.getString()
+            except Exception:
+                s = ""
+            try:
+                services = list(shape.SupportedServiceNames)
+            except Exception:
+                services = []
+            if "com.sun.star.presentation.TitleTextShape" in services:
+                title = s
+            elif (
+                s
+                and not bullets
+                and any(
+                    n.startswith("com.sun.star.presentation.")
+                    and n.endswith("TextShape")
+                    for n in services
+                )
+            ):
+                bullets = s.split("\n")
+            if s:
+                texts.append(s)
+        return {"index": index, "title": title, "bullets": bullets, "text": texts}
+
     def op_delete_slide(self, args):
         slides = self._doc(args["doc_id"]).getDrawPages()
         page = slides.getByIndex(int(args["index"]))
@@ -912,6 +944,7 @@ _SAFE_OPS = {
     "get_text",
     "read_cells",
     "list_slides",
+    "read_slide",
     "close_document",
     "save_document",
     "export_document",

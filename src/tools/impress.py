@@ -41,6 +41,18 @@ def register(mcp: FastMCP) -> None:
         return await get_session().call("list_slides", doc_id=doc_id)
 
     @mcp.tool()
+    async def read_slide(doc_id: str, index: int) -> dict:
+        """Read a slide's text content by 0-based index.
+
+        Returns {index, title, bullets, text}: `title` is the title placeholder,
+        `bullets` the body placeholder split into lines, and `text` every
+        non-empty string on the slide in z-order — including graphics-built text
+        boxes and shape labels (add_textbox/add_shape), which the placeholders
+        don't capture.
+        """
+        return await get_session().call("read_slide", doc_id=doc_id, index=index)
+
+    @mcp.tool()
     async def delete_slide(doc_id: str, index: int) -> dict:
         """Delete a slide by 0-based index. Returns {count}."""
         return await get_session().call("delete_slide", doc_id=doc_id, index=index)

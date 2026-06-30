@@ -102,6 +102,7 @@ typical flow is **create/open → edit → export** (e.g. build a deck and save 
 | `add_slide(doc_id, layout?)` | Append an Impress slide |
 | `set_slide_content(doc_id, index, title?, bullets?)` | Set a slide's title/bullets |
 | `list_slides(doc_id)` / `delete_slide(doc_id, index)` | Inspect / remove slides |
+| `read_slide(doc_id, index)` | Read a slide's title, bullets, and text boxes |
 | `set_presentation_size(doc_id, preset)` | Slide aspect (16:9 / 4:3) |
 | `set_slide_background(doc_id, slide, color, color2?)` | Solid or gradient background |
 | `add_textbox(doc_id, slide, text, x, y, w, h, …)` | Positioned, styled text |

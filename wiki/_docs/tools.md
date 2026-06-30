@@ -35,6 +35,7 @@ open until closed.
 | `add_slide` | `doc_id`, `layout?` | `{index, count}` |
 | `set_slide_content` | `doc_id`, `index`, `title?`, `bullets?` | `{index}` |
 | `list_slides` | `doc_id` | `{slides, count}` |
+| `read_slide` | `doc_id`, `index` | `{index, title, bullets, text}` |
 | `delete_slide` | `doc_id`, `index` | `{count}` |
 | `set_presentation_size` | `doc_id`, `preset` | `{width, height}` |
 | `set_slide_background` | `doc_id`, `slide`, `color`, `color2?`, `angle?` | `{ok}` |
@@ -45,41 +46,3 @@ open until closed.
 Formats: `pdf`, `docx`, `odt`, `xlsx`, `ods`, `csv`, `html`, `txt`, `pptx`, `odp`
 (inferred from the path extension). `cells` is a list of `{cell, value?|formula?}`
 — a `formula` starts with `=` and is evaluated by Calc.
-
-## Slide graphics
-
-Slides are 0-indexed (a new deck starts with one slide). `set_slide_content`
-fills the title/bullet placeholders; for **engaging, themed decks** use the
-graphics tools. Their `x`/`y`/`w`/`h` are **percent (0-100)** of the slide and
-colors are **hex** (`#c2410c`). `shape` is `rect`|`round`|`ellipse`|`line`. Build
-each slide **background-first** (it stacks to the back), then layer text and
-shapes on top. See the [agent guide](/llms.txt) for copy-pasteable deck recipes.
-
-## Writer documents
-
-Beyond plain `insert_text`, build **branded documents** (letterheads, reports,
-one-pagers): `add_paragraph` is the workhorse (large bold = a heading),
-`add_list` makes bullets, `insert_table` draws a table with an accent header row,
-and `insert_image` embeds an image inline. `add_page_box` places a **page-anchored
-band or callout** — `x`/`y`/`w`/`h` are percent (0-100) of the *page* — for header
-and footer bands. Sizes are in points, spacing/margins in cm, colors in hex.
-
-## Live editing & concurrency
-
-The server drives **one** LibreOffice in an isolated profile — a separate process
-from your everyday LibreOffice. So:
-
-- **To watch edits live, edit the window the server opens** (live mode,
-  `show: true`). It shares the server's document model, so you and the agent see
-  each other's changes instantly. Opening the *same file* in your own LibreOffice
-  is a **separate in-memory copy** — the two processes can't see each other's
-  unsaved edits (local LibreOffice has no real-time co-editing; that's a
-  cloud/Collabora feature). The only bridge between two instances is the file on
-  disk: save in one, reopen in the other.
-- **The agent won't clobber your in-flight edits.** Every document carries a
-  revision counter (`rev`) bumped on *any* change — agent or human. A tool that
-  would edit a document changed since the agent last looked at it (`rev` >
-  `seen`) is **refused with a `{conflict: true}` warning**; the agent re-reads
-  (e.g. `get_text`) to pick up your change, then retries. `close_document`
-  likewise refuses to discard unsaved changes unless you pass `force`. This holds
-  for **every document kind** (Writer, Calc, Impress, Draw).
