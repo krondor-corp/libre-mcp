@@ -9,7 +9,7 @@ What libre-mcp can do with each file format, by area. Legend: **✓** supported 
 **~** partial · **—** not yet.
 
 - **Read** — open the file and pull content back through a tool
-  (`get_text` for Writer, `read_cells` for Calc, `list_slides` for Impress).
+  (`get_text` for Writer, `read_cells` for Calc, `read_slide` for Impress).
 - **Create** — make a new document and `export_document` it to this format.
 - **Edit** — open an existing file and change it with the area's tools, then save.
 
@@ -49,11 +49,12 @@ Read returns cell values via `read_cells`; editing writes cells and formulas via
 
 | Format | MIME type | Read | Create | Edit |
 |--------|-----------|:----:|:------:|:----:|
-| ODP (.odp) | `application/vnd.oasis.opendocument.presentation` | ~ | ✓ | ✓ |
-| PowerPoint (.pptx) | `application/vnd.openxmlformats-officedocument.presentationml.presentation` | ~ | ✓ | ✓ |
+| ODP (.odp) | `application/vnd.oasis.opendocument.presentation` | ✓ | ✓ | ✓ |
+| PowerPoint (.pptx) | `application/vnd.openxmlformats-officedocument.presentationml.presentation` | ✓ | ✓ | ✓ |
 
-Read is **partial** — `list_slides` returns slide titles and count, not full slide
-content. Editing covers slides, text, shapes, gradients, and images.
+`read_slide` returns a slide's title, bullets, and every text box on it (`list_slides`
+gives the title/count overview); reading recovers text content, not shape geometry
+or colors. Editing covers slides, text, shapes, gradients, and images.
 
 ## Drawings — Draw
 
@@ -79,4 +80,3 @@ into Draw, lossily).
 `open_document` uses LibreOffice's importers, so it can *open* more legacy and
 niche formats than the table lists (e.g. `.ppt`, `.pptx` variants, `.fodt`) — but
 the formats above are the ones libre-mcp explicitly reads, creates, and exports.
-The export filters live in the `_FILTERS` map in `src/office/uno_worker.py`.

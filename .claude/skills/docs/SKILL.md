@@ -9,6 +9,17 @@ Run this after any change to the tool surface, supported formats, or document
 types. The goal: a human reading the README/wiki **and** an agent reading
 `wiki/llms.txt` can both discover and use the new capability.
 
+## Audience — keep the wiki user-facing
+
+The wiki (`wiki/`) and the README are for **users of the server**, not
+contributors. Describe *what the tools do and how to use them* — never internal
+implementation. **Do not reference source files, internal symbols, or code
+structure** in the wiki: no `src/...` paths, no `.py` filenames, no map/function
+names (`_FILTERS`, `op_*`), no `.claude/...`. Implementation notes belong in
+`AGENTS.md` / code comments, not the published docs. (`wiki/llms.txt` is user-
+facing too: it may link the public GitHub repo and the UNO API, but not name
+internal files or symbols.)
+
 ## 1. Tool tables (must match the actual tools)
 
 Update both — they list the same tools and must agree:
@@ -50,5 +61,7 @@ If you added an export format, add it in **both**:
 - `cd wiki && bundle exec jekyll build` succeeds.
 - Catch stale copy: grep the old phrasing, e.g.
   `grep -rn "Writer & Calc" README.md wiki/`
+- **No internal leaks in the wiki** — this must return nothing:
+  `grep -rni "src/\|\.py\b\|_FILTERS\|op_\|uno_worker\|\.claude" wiki/ --exclude-dir=_site`
 - Sanity: the new tool appears in the README table, the wiki tools table, and
   `llms.txt` (with a recipe if it's a deliverable).
