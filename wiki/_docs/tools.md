@@ -17,10 +17,10 @@ open until closed.
 | `create_document` | `kind` (writer\|calc\|impress\|draw) | `{doc_id, kind}` |
 | `open_document` | `path` | `{doc_id, kind, path}` |
 | `list_documents` | — | `{documents}` |
-| `document_info` | `doc_id` | `{kind, url, modified}` |
+| `document_info` | `doc_id` | `{kind, url, modified, rev, seen}` |
 | `save_document` | `doc_id`, `path?`, `format?` | `{path}` |
 | `export_document` | `doc_id`, `path`, `format?` | `{path, filter}` |
-| `close_document` | `doc_id` | `{closed}` |
+| `close_document` | `doc_id`, `force?` | `{closed}` (refuses on unsaved changes unless `force`) |
 | `get_text` | `doc_id` | `{text}` |
 | `insert_text` | `doc_id`, `text`, `paragraph_break?` | `{ok}` |
 | `find_and_replace` | `doc_id`, `search`, `replace`, `regex?` | `{count}` |
@@ -63,3 +63,23 @@ one-pagers): `add_paragraph` is the workhorse (large bold = a heading),
 and `insert_image` embeds an image inline. `add_page_box` places a **page-anchored
 band or callout** — `x`/`y`/`w`/`h` are percent (0-100) of the *page* — for header
 and footer bands. Sizes are in points, spacing/margins in cm, colors in hex.
+
+## Live editing & concurrency
+
+The server drives **one** LibreOffice in an isolated profile — a separate process
+from your everyday LibreOffice. So:
+
+- **To watch edits live, edit the window the server opens** (live mode,
+  `show: true`). It shares the server's document model, so you and the agent see
+  each other's changes instantly. Opening the *same file* in your own LibreOffice
+  is a **separate in-memory copy** — the two processes can't see each other's
+  unsaved edits (local LibreOffice has no real-time co-editing; that's a
+  cloud/Collabora feature). The only bridge between two instances is the file on
+  disk: save in one, reopen in the other.
+- **The agent won't clobber your in-flight edits.** Every document carries a
+  revision counter (`rev`) bumped on *any* change — agent or human. A tool that
+  would edit a document changed since the agent last looked at it (`rev` >
+  `seen`) is **refused with a `{conflict: true}` warning**; the agent re-reads
+  (e.g. `get_text`) to pick up your change, then retries. `close_document`
+  likewise refuses to discard unsaved changes unless you pass `force`. This holds
+  for **every document kind** (Writer, Calc, Impress, Draw).

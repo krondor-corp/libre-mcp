@@ -84,10 +84,10 @@ typical flow is **create/open → edit → export** (e.g. build a deck and save 
 |------|---------|
 | `create_document(kind)` | New writer/calc/impress/draw doc → `doc_id` |
 | `open_document(path)` | Open a file → `doc_id` |
-| `list_documents()` / `document_info(doc_id)` | Inspect open docs |
+| `list_documents()` / `document_info(doc_id)` | Inspect open docs (`modified`, `rev`) |
 | `save_document(doc_id, path?, format?)` | Save in place or to a path |
 | `export_document(doc_id, path, format?)` | Export (pdf, docx, xlsx, csv, …) |
-| `close_document(doc_id)` | Close a doc |
+| `close_document(doc_id, force?)` | Close a doc (refuses on unsaved changes; `force` discards) |
 | `get_text(doc_id)` | Read a Writer doc's text |
 | `insert_text(doc_id, text, paragraph_break?)` | Append text |
 | `find_and_replace(doc_id, search, replace, regex?)` | Replace text |
@@ -112,6 +112,25 @@ Slide graphics (and Writer page boxes) position by **percent (0-100)** and take
 **hex colors** — enough to build themed, graphic-rich decks *and* branded
 documents (letterheads, reports, one-pagers). Full arguments: the
 [tool reference](https://libre-mcp.krondor.org/docs/tools/).
+
+### Live editing & concurrency
+
+The server drives **one** headless/visible LibreOffice in an isolated profile —
+its own process, separate from your everyday LibreOffice. That has two
+consequences worth knowing:
+
+- **To watch edits live, edit the window the server opens** (live mode,
+  `show: true`) — it shares the server's document model, so you and the agent see
+  each other's changes instantly. Opening the *same file* in your own LibreOffice
+  gives you a **separate** in-memory copy; the two processes can't see each
+  other's unsaved edits (local LibreOffice has no real-time co-editing — that's a
+  cloud/Collabora feature). The only bridge between two instances is the file on
+  disk: save in one, reopen in the other.
+- **The agent won't clobber your in-flight edits.** Every document carries a
+  revision counter bumped on *any* change (agent or human); a tool that would
+  edit a document you changed since the agent last looked is **refused with a
+  conflict warning** until the agent re-reads it. Likewise `close_document`
+  refuses to discard unsaved changes unless you pass `force`.
 
 ## Links
 

@@ -20,10 +20,10 @@
 Documents
 - `create_document(kind)` — kind: `writer` | `calc` | `impress` | `draw` → `{doc_id, kind}`
 - `open_document(path)` → `{doc_id, kind, path}`
-- `list_documents()` → `{documents}` · `document_info(doc_id)` → `{kind, url, modified}`
+- `list_documents()` → `{documents}` · `document_info(doc_id)` → `{kind, url, modified, rev, seen}`
 - `save_document(doc_id, path?, format?)` — save in place, or a copy to `path`
 - `export_document(doc_id, path, format?)` — pdf, docx, xlsx, pptx, csv, odt/ods/odp, html, txt
-- `close_document(doc_id)`
+- `close_document(doc_id, force?)` — refuses if there are unsaved changes; pass `force` to discard
 
 Writer — basic
 - `get_text(doc_id)` → `{text}`
@@ -147,6 +147,29 @@ shapes and export, or render it and `insert_image` it into the document.
   `formula` (starting `=`) is evaluated by Calc. `sheet` selects by name or
   0-based index.
 - To revise an existing file, `open_document` it, edit, then `save_document`.
+
+## Live editing & concurrency
+
+The server drives ONE LibreOffice instance in an isolated profile (its own
+process). This shapes how live editing and conflict-handling work — for every
+document kind (Writer/Calc/Impress/Draw):
+
+- **One shared window for live editing.** In live mode (`show: true`) the server
+  opens a visible window backed by the *same* document model you're editing
+  through tools — a human watching that window sees your edits instantly, and you
+  see theirs. A file opened separately in another LibreOffice is a distinct
+  in-memory copy: the two processes share nothing until one saves to disk and the
+  other reopens (local LibreOffice has no real-time co-editing).
+- **Conflict guard — don't clobber human edits.** Each doc has a `rev` counter
+  bumped on every change (yours or a human's). If you call a mutating tool on a
+  doc that changed since you last touched it, the call is REFUSED and returns
+  `{conflict: true, warning, rev, seen}` instead of editing. Recover by re-reading
+  the doc (e.g. `get_text`, or `read_cells`) — that resyncs `seen` and shows you
+  the human's change — then retry your edit. Pass `force: true` to override
+  without re-reading (rarely needed; prefer re-reading so you merge, not clobber).
+- **`close_document` refuses on unsaved changes** unless `force: true`. Save
+  first (`save_document`) so nothing is silently discarded. `document_info`
+  reports `modified`, `rev`, and `seen` so you can inspect state at any time.
 
 ## Reference
 

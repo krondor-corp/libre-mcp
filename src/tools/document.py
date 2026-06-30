@@ -71,6 +71,11 @@ def register(mcp: FastMCP) -> None:
         )
 
     @mcp.tool()
-    async def close_document(doc_id: str) -> dict:
-        """Close an open document (discarding unsaved changes)."""
-        return await get_session().call("close_document", doc_id=doc_id)
+    async def close_document(doc_id: str, force: bool = False) -> dict:
+        """Close an open document.
+
+        Refuses with a warning if the document has unsaved changes (so in-flight
+        work — yours or a human's, in a live window — isn't silently discarded);
+        save_document first, or pass force=true to close and discard.
+        """
+        return await get_session().call("close_document", doc_id=doc_id, force=force)

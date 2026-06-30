@@ -17,7 +17,9 @@ import sys
 import time
 
 import uno  # provided by the bundled interpreter
+import unohelper  # first-party UNO helper (ships with LibreOffice)
 from com.sun.star.beans import PropertyValue
+from com.sun.star.util import XModifyListener
 
 
 def eprint(*a) -> None:
@@ -98,6 +100,23 @@ _TABLE_HEADER_TEXT = "#ffffff"
 _LINE_FALLBACK = "#000000"
 
 
+class _RevListener(unohelper.Base, XModifyListener):
+    """Bumps a per-document revision counter on every modification — whether the
+    change comes from one of our tool calls or from a human editing the live
+    window. Works for any document kind (Writer/Calc/Impress/Draw all support
+    XModifiable), which lets the worker detect out-of-band edits and refuse to
+    clobber them. See the concurrency guard in serve()."""
+
+    def __init__(self, bump):
+        self._bump = bump
+
+    def modified(self, event):  # com.sun.star.lang.EventObject
+        self._bump()
+
+    def disposing(self, event):  # XEventListener
+        pass
+
+
 class Worker:
     def __init__(self, url: str) -> None:
         self.url = url
@@ -106,6 +125,13 @@ class Worker:
         self.docs: dict[str, object] = {}
         self._counter = 0
         self.visible = False  # live mode: load docs in a visible window
+        # Optimistic-concurrency tracking. `_rev` is bumped on every change to a
+        # document (by us or by a human in the live window); `_seen` records the
+        # revision as of our last operation on that doc. When `_rev > _seen` a
+        # mutating call is refused so we don't clobber an out-of-band edit.
+        self._rev: dict[str, int] = {}
+        self._seen: dict[str, int] = {}
+        self._listeners: dict[str, object] = {}
 
     def _hidden(self, args):
         """Whether to load a document off-screen. A headless office can only ever
@@ -158,6 +184,33 @@ class Worker:
             raise KeyError(f"unknown doc_id: {doc_id}")
         return doc
 
+    def _track(self, doc, doc_id: str) -> None:
+        """Register a document for revision tracking and attach a modify
+        listener so human edits in the live window bump its revision too."""
+        self.docs[doc_id] = doc
+        self._rev[doc_id] = 0
+        self._seen[doc_id] = 0
+
+        def bump():
+            self._rev[doc_id] = self._rev.get(doc_id, 0) + 1
+
+        try:
+            listener = _RevListener(bump)
+            doc.addModifyListener(listener)
+            self._listeners[doc_id] = listener
+        except Exception as e:  # XModifiable should be universal; stay defensive
+            eprint(f"modify-listener attach failed for {doc_id}: {e}")
+
+    def _untrack(self, doc, doc_id: str) -> None:
+        listener = self._listeners.pop(doc_id, None)
+        if listener is not None:
+            try:
+                doc.removeModifyListener(listener)
+            except Exception:
+                pass
+        self._rev.pop(doc_id, None)
+        self._seen.pop(doc_id, None)
+
     @staticmethod
     def _kind_of(doc) -> str:
         checks = (
@@ -197,7 +250,7 @@ class Worker:
         if not hidden:
             self._show(doc)
         doc_id = self._new_id()
-        self.docs[doc_id] = doc
+        self._track(doc, doc_id)
         return {"doc_id": doc_id, "kind": kind}
 
     def op_open_document(self, args):
@@ -210,7 +263,7 @@ class Worker:
         if not hidden:
             self._show(doc)
         doc_id = self._new_id()
-        self.docs[doc_id] = doc
+        self._track(doc, doc_id)
         return {"doc_id": doc_id, "kind": self._kind_of(doc), "path": path}
 
     def op_list_documents(self, args):
@@ -224,17 +277,33 @@ class Worker:
         return {"documents": out}
 
     def op_document_info(self, args):
-        doc = self._doc(args["doc_id"])
+        doc_id = args["doc_id"]
+        doc = self._doc(doc_id)
         return {
-            "doc_id": args["doc_id"],
+            "doc_id": doc_id,
             "kind": self._kind_of(doc),
             "url": doc.getURL() or "",
             "modified": bool(doc.isModified()),
+            "rev": self._rev.get(doc_id, 0),
+            "seen": self._seen.get(doc_id, 0),
         }
 
     def op_close_document(self, args):
         doc_id = args["doc_id"]
         doc = self._doc(doc_id)
+        # Closing discards unsaved changes. Refuse if the document has been
+        # modified (by us or a human) unless the caller explicitly forces it,
+        # so we never silently throw away in-flight work.
+        if doc.isModified() and not args.get("force"):
+            return {
+                "closed": None,
+                "warning": (
+                    "document has unsaved changes — save_document first, or pass "
+                    "force=true to discard them and close."
+                ),
+                "modified": True,
+            }
+        self._untrack(doc, doc_id)
         doc.close(False)
         del self.docs[doc_id]
         return {"closed": doc_id}
@@ -829,6 +898,25 @@ def _load_constants():
 
 _OPS = {name[3:]: name for name in dir(Worker) if name.startswith("op_")}
 
+# Ops that never mutate the document model: reads, plus lifecycle ops that handle
+# their own safety (close guards on unsaved changes; save/export only read the
+# model). Every *other* op that carries a `doc_id` is treated as a mutating edit
+# and is gated by the optimistic-concurrency guard in serve(), so new edit tools
+# are protected automatically, for any document kind.
+_SAFE_OPS = {
+    "ping",
+    "create_document",
+    "open_document",
+    "list_documents",
+    "document_info",
+    "get_text",
+    "read_cells",
+    "list_slides",
+    "close_document",
+    "save_document",
+    "export_document",
+}
+
 
 def serve(worker: Worker) -> None:
     for raw in sys.stdin:
@@ -877,8 +965,45 @@ def serve(worker: Worker) -> None:
             sys.stdout.flush()
             continue
 
+        # Optimistic-concurrency guard: refuse to mutate a document that changed
+        # since we last touched it (a human edited the live window), unless forced.
+        doc_id = args.get("doc_id")
+        if (
+            doc_id is not None
+            and op not in _SAFE_OPS
+            and not args.get("force")
+            and worker._rev.get(doc_id, 0) > worker._seen.get(doc_id, 0)
+        ):
+            sys.stdout.write(
+                json.dumps(
+                    {
+                        "id": req_id,
+                        "ok": True,
+                        "result": {
+                            "conflict": True,
+                            "warning": (
+                                "document changed since your last edit (an "
+                                "external/human edit). Re-read it (e.g. get_text) "
+                                "to pick up the change, then retry — or pass "
+                                "force=true to edit anyway."
+                            ),
+                            "rev": worker._rev.get(doc_id, 0),
+                            "seen": worker._seen.get(doc_id, 0),
+                        },
+                    }
+                )
+                + "\n"
+            )
+            sys.stdout.flush()
+            continue
+
         try:
             result = getattr(worker, method)(args)
+            # Resync: after any successful op on a tracked doc, mark its current
+            # revision as seen (our own edits' modify events fire synchronously
+            # within the call above, so they're already counted).
+            if doc_id is not None and doc_id in worker._rev:
+                worker._seen[doc_id] = worker._rev.get(doc_id, 0)
             resp = {"id": req_id, "ok": True, "result": result}
         except Exception as e:
             fatal = "DisposedException" in type(
