@@ -87,6 +87,17 @@ def _color(value):
     return int(str(value).lstrip("#"), 16)
 
 
+def _cm(value):
+    """Centimetres -> 1/100 mm (UNO's metric unit)."""
+    return int(float(value) * 1000)
+
+
+# Worker-internal default colors. Tool-facing defaults live in
+# src/tools/_defaults.py; these cover the few cases a tool doesn't expose.
+_TABLE_HEADER_TEXT = "#ffffff"
+_LINE_FALLBACK = "#000000"
+
+
 class Worker:
     def __init__(self, url: str) -> None:
         self.url = url
@@ -94,6 +105,24 @@ class Worker:
         self.desktop = None
         self.docs: dict[str, object] = {}
         self._counter = 0
+        self.visible = False  # live mode: load docs in a visible window
+
+    def _hidden(self, args):
+        """Whether to load a document off-screen. A headless office can only ever
+        be hidden; a visible (live) office honors a per-call `show`, defaulting to
+        shown."""
+        if not self.visible:
+            return True
+        show = args.get("show")
+        return False if show is None else not show
+
+    def _show(self, doc):
+        try:
+            win = doc.getCurrentController().getFrame().getContainerWindow()
+            win.setVisible(True)
+            win.toFront()
+        except Exception:
+            pass
 
     # -- connection -------------------------------------------------------
     def connect(self, timeout: float = 30.0, delay: float = 0.5) -> None:
@@ -161,9 +190,12 @@ class Worker:
         kind = args.get("kind", "writer")
         if kind not in _FACTORY:
             raise ValueError(f"unknown kind: {kind}")
+        hidden = self._hidden(args)
         doc = self.desktop.loadComponentFromURL(
-            _FACTORY[kind], "_blank", 0, (_prop("Hidden", True),)
+            _FACTORY[kind], "_blank", 0, (_prop("Hidden", hidden),)
         )
+        if not hidden:
+            self._show(doc)
         doc_id = self._new_id()
         self.docs[doc_id] = doc
         return {"doc_id": doc_id, "kind": kind}
@@ -171,9 +203,12 @@ class Worker:
     def op_open_document(self, args):
         path = args["path"]
         url = uno.systemPathToFileUrl(path)
+        hidden = self._hidden(args)
         doc = self.desktop.loadComponentFromURL(
-            url, "_blank", 0, (_prop("Hidden", True),)
+            url, "_blank", 0, (_prop("Hidden", hidden),)
         )
+        if not hidden:
+            self._show(doc)
         doc_id = self._new_id()
         self.docs[doc_id] = doc
         return {"doc_id": doc_id, "kind": self._kind_of(doc), "path": path}
@@ -421,7 +456,7 @@ class Worker:
         self._style_text(
             shape,
             args["text"],
-            args.get("color", "#000000"),
+            args.get("color"),
             args.get("size", 18),
             args.get("bold", False),
             args.get("italic", False),
@@ -452,7 +487,7 @@ class Worker:
         else:
             self._apply_fill(
                 shape,
-                args.get("fill", "#888888"),
+                args.get("fill"),
                 args.get("fill2"),
                 args.get("angle", 0),
             )
@@ -460,7 +495,7 @@ class Worker:
         if line is not None or kind == "line":
             shape.LineStyle = LINE_SOLID
             shape.LineColor = _color(
-                line if line is not None else args.get("fill", "#000000")
+                line if line is not None else (args.get("fill") or _LINE_FALLBACK)
             )
             shape.LineWidth = int(args.get("line_width", 40))
         else:
@@ -469,7 +504,7 @@ class Worker:
             self._style_text(
                 shape,
                 args["text"],
-                args.get("text_color", "#ffffff"),
+                args.get("text_color"),
                 args.get("text_size", 16),
                 args.get("text_bold", False),
                 False,
@@ -492,6 +527,198 @@ class Worker:
         prop.Name = "URL"
         prop.Value = uno.systemPathToFileUrl(args["path"])
         shape.Graphic = provider.queryGraphic((prop,))
+        return {"ok": True}
+
+    # writer: rich documents -------------------------------------------
+    def _page_style(self, doc):
+        return doc.getStyleFamilies().getByName("PageStyles").getByName("Standard")
+
+    def _graphic(self, path):
+        provider = self.ctx.ServiceManager.createInstanceWithContext(
+            "com.sun.star.graphic.GraphicProvider", self.ctx
+        )
+        prop = PropertyValue()
+        prop.Name = "URL"
+        prop.Value = uno.systemPathToFileUrl(path)
+        return provider.queryGraphic((prop,))
+
+    def _char(self, cur, args):
+        from com.sun.star.awt.FontSlant import ITALIC
+        from com.sun.star.awt.FontSlant import NONE as SLANT_NONE
+        from com.sun.star.awt.FontWeight import BOLD, NORMAL
+
+        if args.get("size"):
+            cur.CharHeight = float(args["size"])
+        if args.get("color") is not None:
+            cur.CharColor = _color(args["color"])
+        cur.CharWeight = BOLD if args.get("bold") else NORMAL
+        cur.CharPosture = ITALIC if args.get("italic") else SLANT_NONE
+        if args.get("font"):
+            cur.CharFontName = args["font"]
+
+    def op_page_setup(self, args):
+        ps = self._page_style(self._doc(args["doc_id"]))
+        margin = args.get("margin")
+        if margin is not None:
+            ps.LeftMargin = ps.RightMargin = ps.BottomMargin = _cm(margin)
+            ps.TopMargin = _cm(args.get("top", margin))
+        elif args.get("top") is not None:
+            ps.TopMargin = _cm(args["top"])
+        if args.get("color") is not None:
+            ps.BackColor = _color(args["color"])
+            ps.BackTransparent = False
+        return {"ok": True}
+
+    def op_add_paragraph(self, args):
+        from com.sun.star.style.ParagraphAdjust import BLOCK, CENTER, LEFT, RIGHT
+
+        doc = self._doc(args["doc_id"])
+        text = doc.getText()
+        cur = text.createTextCursor()
+        cur.gotoEnd(False)
+        style = args.get("style")
+        if style:
+            cur.ParaStyleName = style
+        cur.ParaAdjust = {
+            "left": LEFT,
+            "center": CENTER,
+            "right": RIGHT,
+            "justify": BLOCK,
+        }.get(args.get("align", "left"), LEFT)
+        cur.ParaLeftMargin = 0
+        cur.ParaFirstLineIndent = 0
+        cur.ParaTopMargin = _cm(args.get("space_before", 0))
+        cur.ParaBottomMargin = _cm(args.get("space_after", 0.2))
+        self._char(cur, args)
+        text.insertString(cur, args["text"], False)
+        text.insertControlCharacter(cur, PARAGRAPH_BREAK, False)
+        return {"ok": True}
+
+    def op_add_list(self, args):
+        doc = self._doc(args["doc_id"])
+        text = doc.getText()
+        cur = text.createTextCursor()
+        ordered = args.get("ordered", False)
+        for i, item in enumerate(args["items"]):
+            cur.gotoEnd(False)
+            cur.ParaLeftMargin = _cm(0.7)
+            cur.ParaFirstLineIndent = -_cm(0.7)
+            cur.ParaBottomMargin = _cm(args.get("space_after", 0.12))
+            self._char(cur, args)
+            bullet = f"{i + 1}.   " if ordered else "•   "
+            text.insertString(cur, bullet + str(item), False)
+            text.insertControlCharacter(cur, PARAGRAPH_BREAK, False)
+        cur.gotoEnd(False)
+        cur.ParaLeftMargin = 0
+        cur.ParaFirstLineIndent = 0
+        return {"ok": True}
+
+    def op_insert_table(self, args):
+        doc = self._doc(args["doc_id"])
+        text = doc.getText()
+        rows = args["rows"]
+        nrows, ncols = len(rows), max(len(r) for r in rows)
+        table = doc.createInstance("com.sun.star.text.TextTable")
+        table.initialize(nrows, ncols)
+        cur = text.createTextCursor()
+        cur.gotoEnd(False)
+        text.insertTextContent(cur, table, False)
+        header = args.get("header", True)
+        accent = _color(args.get("accent"))
+        header_text = _color(args.get("header_color") or _TABLE_HEADER_TEXT)
+        body_text = _color(args.get("color"))
+        from com.sun.star.awt.FontWeight import BOLD, NORMAL
+
+        for r, row in enumerate(rows):
+            for c in range(ncols):
+                cell = table.getCellByName(f"{chr(65 + c)}{r + 1}")
+                val = row[c] if c < len(row) else ""
+                ct = cell.getText()
+                ccur = ct.createTextCursor()
+                ccur.CharHeight = float(args.get("size", 11))
+                if header and r == 0:
+                    if accent is not None:
+                        cell.BackColor = accent
+                    ccur.CharColor = header_text
+                    ccur.CharWeight = BOLD
+                else:
+                    if body_text is not None:
+                        ccur.CharColor = body_text
+                    ccur.CharWeight = NORMAL
+                ct.insertString(ccur, str(val), False)
+        return {"ok": True}
+
+    def op_insert_image(self, args):
+        doc = self._doc(args["doc_id"])
+        text = doc.getText()
+        from com.sun.star.text.TextContentAnchorType import AS_CHARACTER
+
+        img = doc.createInstance("com.sun.star.text.TextGraphicObject")
+        graphic = self._graphic(args["path"])
+        img.Graphic = graphic
+        img.AnchorType = AS_CHARACTER
+        native = graphic.Size100thMM
+        width = _cm(args.get("width_cm", 8))
+        ratio = (native.Height / native.Width) if native.Width else 0.6
+        img.Width = width
+        img.Height = int(width * ratio)
+        cur = text.createTextCursor()
+        cur.gotoEnd(False)
+        text.insertTextContent(cur, img, False)
+        return {"ok": True}
+
+    def op_add_page_box(self, args):
+        from com.sun.star.table import BorderLine2
+        from com.sun.star.text.HoriOrientation import NONE as H_NONE
+        from com.sun.star.text.RelOrientation import PAGE_FRAME
+        from com.sun.star.text.TextContentAnchorType import AT_PAGE
+        from com.sun.star.text.VertOrientation import NONE as V_NONE
+
+        doc = self._doc(args["doc_id"])
+        text = doc.getText()
+        ps = self._page_style(doc)
+        frame = doc.createInstance("com.sun.star.text.TextFrame")
+        frame.Width = int(ps.Width * args["w"] / 100)
+        frame.Height = int(ps.Height * args["h"] / 100)
+        frame.AnchorType = AT_PAGE
+        frame.HoriOrient = H_NONE
+        frame.HoriOrientRelation = PAGE_FRAME
+        frame.HoriOrientPosition = int(ps.Width * args["x"] / 100)
+        frame.VertOrient = V_NONE
+        frame.VertOrientRelation = PAGE_FRAME
+        frame.VertOrientPosition = int(ps.Height * args["y"] / 100)
+        no_border = BorderLine2()
+        no_border.LineWidth = 0
+        for side in ("TopBorder", "BottomBorder", "LeftBorder", "RightBorder"):
+            setattr(frame, side, no_border)
+        for dist in (
+            "LeftBorderDistance",
+            "RightBorderDistance",
+            "TopBorderDistance",
+            "BottomBorderDistance",
+        ):
+            try:
+                setattr(frame, dist, _cm(args.get("pad", 0.3)))
+            except Exception:
+                pass
+        if args.get("fill") is not None:
+            frame.BackColor = _color(args["fill"])
+            frame.BackTransparent = False
+        else:
+            frame.BackTransparent = True
+        cur = text.createTextCursor()
+        cur.gotoEnd(False)
+        text.insertTextContent(cur, frame, False)
+        if args.get("text"):
+            from com.sun.star.style.ParagraphAdjust import CENTER, LEFT, RIGHT
+
+            ft = frame.getText()
+            fcur = ft.createTextCursor()
+            fcur.ParaAdjust = {"left": LEFT, "center": CENTER, "right": RIGHT}.get(
+                args.get("align", "left"), LEFT
+            )
+            self._char(fcur, args)
+            ft.insertString(fcur, args["text"], False)
         return {"ok": True}
 
     # persistence
@@ -598,9 +825,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", required=True)
     parser.add_argument("--connect-timeout", type=float, default=30.0)
+    parser.add_argument("--visible", action="store_true")
     ns = parser.parse_args()
 
     worker = Worker(ns.url)
+    worker.visible = ns.visible
     worker.connect(timeout=ns.connect_timeout)
     _load_constants()
     serve(worker)

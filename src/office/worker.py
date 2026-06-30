@@ -28,12 +28,18 @@ class WorkerError(RuntimeError):
 
 class WorkerClient:
     def __init__(
-        self, python_path: str, script: str, url: str, connect_timeout: float = 30.0
+        self,
+        python_path: str,
+        script: str,
+        url: str,
+        connect_timeout: float = 30.0,
+        visible: bool = False,
     ) -> None:
         self.python_path = python_path
         self.script = script
         self.url = url
         self.connect_timeout = connect_timeout
+        self.visible = visible
         self._proc: asyncio.subprocess.Process | None = None
         self._lock = asyncio.Lock()
         self._next_id = 0
@@ -41,13 +47,18 @@ class WorkerClient:
 
     async def start(self) -> None:
         log.info("starting uno worker: %s %s", self.python_path, self.script)
-        self._proc = await asyncio.create_subprocess_exec(
-            self.python_path,
+        args = [
             self.script,
             "--url",
             self.url,
             "--connect-timeout",
             str(self.connect_timeout),
+        ]
+        if self.visible:
+            args.append("--visible")
+        self._proc = await asyncio.create_subprocess_exec(
+            self.python_path,
+            *args,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,

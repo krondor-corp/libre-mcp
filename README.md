@@ -91,6 +91,12 @@ typical flow is **create/open → edit → export** (e.g. build a deck and save 
 | `get_text(doc_id)` | Read a Writer doc's text |
 | `insert_text(doc_id, text, paragraph_break?)` | Append text |
 | `find_and_replace(doc_id, search, replace, regex?)` | Replace text |
+| `page_setup(doc_id, margin?, top?, color?)` | Page margins / background |
+| `add_paragraph(doc_id, text, size?, color?, bold?, align?, …)` | Styled paragraph / heading |
+| `add_list(doc_id, items, ordered?)` | Bulleted / numbered list |
+| `insert_table(doc_id, rows, header?, accent?)` | Table (accent header row) |
+| `insert_image(doc_id, path, width_cm?)` | Inline image |
+| `add_page_box(doc_id, x, y, w, h, text?, fill?, …)` | Page-anchored band / callout |
 | `set_cells(doc_id, cells, sheet?)` | Write Calc cells/formulas |
 | `read_cells(doc_id, range, sheet?)` | Read a Calc range |
 | `add_slide(doc_id, layout?)` | Append an Impress slide |
@@ -102,9 +108,9 @@ typical flow is **create/open → edit → export** (e.g. build a deck and save 
 | `add_shape(doc_id, slide, x, y, w, h, shape, fill, …)` | Rect/round/ellipse/line (+ text) |
 | `add_image(doc_id, slide, path, x, y, w, h)` | Place an image on a slide |
 
-Slide graphics position by **percent (0-100)** of the slide and take **hex
-colors** — enough to build themed, graphic-rich decks (see
-[this one](https://libre-mcp.krondor.org/docs/tools/)). Full arguments: the
+Slide graphics (and Writer page boxes) position by **percent (0-100)** and take
+**hex colors** — enough to build themed, graphic-rich decks *and* branded
+documents (letterheads, reports, one-pagers). Full arguments: the
 [tool reference](https://libre-mcp.krondor.org/docs/tools/).
 
 ## Links

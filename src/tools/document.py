@@ -11,21 +11,27 @@ from src.office.session import get_session
 
 def register(mcp: FastMCP) -> None:
     @mcp.tool()
-    async def create_document(kind: str = "writer") -> dict:
+    async def create_document(kind: str = "writer", show: bool | None = None) -> dict:
         """Create a new empty LibreOffice document.
 
         kind: one of "writer", "calc", "impress", "draw". Returns {doc_id, kind};
         pass doc_id to subsequent tools.
+
+        show: in live mode, whether to open it in a visible window so edits are
+        watchable. Defaults to the server's live setting; pass false to build it
+        off-screen, true to pop it up. (No effect on a headless server.)
         """
-        return await get_session().call("create_document", kind=kind)
+        return await get_session().call("create_document", kind=kind, show=show)
 
     @mcp.tool()
-    async def open_document(path: str) -> dict:
+    async def open_document(path: str, show: bool | None = None) -> dict:
         """Open an existing document from an absolute filesystem path.
 
-        Returns {doc_id, kind, path}.
+        Returns {doc_id, kind, path}. `show` (live mode) opens it in a visible
+        window (true) or edits it off-screen (false); defaults to the server's
+        live setting.
         """
-        return await get_session().call("open_document", path=path)
+        return await get_session().call("open_document", path=path, show=show)
 
     @mcp.tool()
     async def list_documents() -> dict:

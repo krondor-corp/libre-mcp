@@ -21,8 +21,11 @@ impress), each backed by an `op_*` method in `uno_worker.py`.
 
 You need **LibreOffice installed** to develop (the live tests drive it). The
 committed `.mcp.json` registers two servers: **`libre`** (the installed
-`libre-mcp` binary, stable) and **`libre-dev`** (`./bin/run.sh --dev`, run from
-source with hot-reload — use this while developing).
+`libre-mcp` binary, stable, headless) and **`libre-dev`**
+(`./bin/run.sh --dev --live`, run from source with hot-reload and a **visible**
+LibreOffice window so edits are watchable — use this while developing). The
+`--dev` and `--live` flags are independent (`--live` needs a display); the dev
+server just turns both on.
 
 ```bash
 make sync          # install dev deps (uv)
@@ -36,9 +39,9 @@ registered `libre` MCP server or `make inspect`. See `DEVELOPMENT.md`.
 
 ## Dev hot-reload (tight feedback loop)
 
-The **`libre-dev`** server runs `./bin/run.sh --dev` (debug mode), and in debug
-mode the server watches the source and reloads so you can iterate without
-reconnecting:
+The **`libre-dev`** server runs `./bin/run.sh --dev --live` (debug + visible
+window), and in debug mode the server watches the source and reloads so you can
+iterate without reconnecting:
 
 - **Edit an `op_*` method in `src/office/uno_worker.py`** (the document logic) →
   the UNO worker restarts; the change is live on the **next tool call**. Open

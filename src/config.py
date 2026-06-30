@@ -50,12 +50,16 @@ class Config:
     # debug mode (DEBUG log level) — enables dev hot-reload of the UNO worker
     debug: bool
 
+    # live mode — run a VISIBLE LibreOffice window and show documents in it, so
+    # edits are watchable in real time (local demo; not for the shipped server)
+    live: bool
+
     def __str__(self) -> str:
         return (
             f"Config(soffice_path={self.soffice_path}, python_path={self.python_path}, "
             f"profile_dir={self.profile_dir}, keep_profile={self.keep_profile}, "
             f"startup_timeout={self.startup_timeout}, log_level={self.log_level}, "
-            f"debug={self.debug})"
+            f"debug={self.debug}, live={self.live})"
         )
 
     def __init__(self) -> None:
@@ -73,3 +77,5 @@ class Config:
         self.log_level = os.getenv("LIBRE_MCP_LOG_LEVEL", "INFO").upper()
 
         self.debug = self.log_level == "DEBUG"
+
+        self.live = _bool("LIBRE_MCP_LIVE", False)

@@ -24,6 +24,12 @@ open until closed.
 | `get_text` | `doc_id` | `{text}` |
 | `insert_text` | `doc_id`, `text`, `paragraph_break?` | `{ok}` |
 | `find_and_replace` | `doc_id`, `search`, `replace`, `regex?` | `{count}` |
+| `page_setup` | `doc_id`, `margin?`, `top?`, `color?` | `{ok}` |
+| `add_paragraph` | `doc_id`, `text`, `size?`, `color?`, `bold?`, `italic?`, `align?`, `font?`, `space_before?`, `space_after?`, `style?` | `{ok}` |
+| `add_list` | `doc_id`, `items`, `ordered?`, `size?`, `color?` | `{ok}` |
+| `insert_table` | `doc_id`, `rows`, `header?`, `accent?`, `color?`, `size?` | `{ok}` |
+| `insert_image` | `doc_id`, `path`, `width_cm?` | `{ok}` |
+| `add_page_box` | `doc_id`, `x`, `y`, `w`, `h`, `text?`, `fill?`, `color?`, `size?`, `bold?`, `align?`, `font?`, `pad?` | `{ok}` |
 | `set_cells` | `doc_id`, `cells`, `sheet?` | `{written}` |
 | `read_cells` | `doc_id`, `range`, `sheet?` | `{values}` |
 | `add_slide` | `doc_id`, `layout?` | `{index, count}` |
@@ -48,3 +54,12 @@ graphics tools. Their `x`/`y`/`w`/`h` are **percent (0-100)** of the slide and
 colors are **hex** (`#c2410c`). `shape` is `rect`|`round`|`ellipse`|`line`. Build
 each slide **background-first** (it stacks to the back), then layer text and
 shapes on top. See the [agent guide](/llms.txt) for copy-pasteable deck recipes.
+
+## Writer documents
+
+Beyond plain `insert_text`, build **branded documents** (letterheads, reports,
+one-pagers): `add_paragraph` is the workhorse (large bold = a heading),
+`add_list` makes bullets, `insert_table` draws a table with an accent header row,
+and `insert_image` embeds an image inline. `add_page_box` places a **page-anchored
+band or callout** — `x`/`y`/`w`/`h` are percent (0-100) of the *page* — for header
+and footer bands. Sizes are in points, spacing/margins in cm, colors in hex.

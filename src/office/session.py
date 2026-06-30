@@ -53,6 +53,7 @@ class OfficeSession:
             profile_dir=self.config.profile_dir,
             keep_profile=self.config.keep_profile,
             startup_timeout=self.config.startup_timeout,
+            visible=self.config.live,
         )
         await soffice.start()
 
@@ -61,6 +62,7 @@ class OfficeSession:
             discovery.worker_script(),
             soffice.url,
             connect_timeout=self.config.startup_timeout,
+            visible=self.config.live,
         )
         try:
             await worker.start()

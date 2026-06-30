@@ -25,10 +25,19 @@ Documents
 - `export_document(doc_id, path, format?)` — pdf, docx, xlsx, pptx, csv, odt/ods/odp, html, txt
 - `close_document(doc_id)`
 
-Writer
+Writer — basic
 - `get_text(doc_id)` → `{text}`
 - `insert_text(doc_id, text, paragraph_break?)` — append; set `paragraph_break` for a new paragraph
 - `find_and_replace(doc_id, search, replace, regex?)` → `{count}`
+
+Writer — rich (for branded documents: reports, letterheads, one-pagers). Sizes
+in points, spacing/margins in cm, colors hex.
+- `page_setup(doc_id, margin?, top?, color?)` — margins (cm); `top` clears a header band; `color` = page background
+- `add_paragraph(doc_id, text, size?, color?, bold?, italic?, align?, font?, space_before?, space_after?, style?)` — the workhorse; large + bold = a heading; `align` left|center|right|justify
+- `add_list(doc_id, items, ordered?, size?, color?)` — bullets, or numbered if `ordered`
+- `insert_table(doc_id, rows, header?, accent?, color?, size?)` — `rows` is a 2D list; `header` styles row 0 with the accent fill
+- `insert_image(doc_id, path, width_cm?)` — embed an image inline, aspect preserved
+- `add_page_box(doc_id, x, y, w, h, text?, fill?, color?, size?, bold?, align?, font?)` — a page-anchored band/callout; x/y/w/h are PERCENT of the PAGE; give it a `fill` (transparent frames aren't reliable across builds)
 
 Calc
 - `set_cells(doc_id, cells, sheet?)` — `cells`: `[{cell, value?|formula?}]`; a `formula` starts with `=`
@@ -49,13 +58,20 @@ of the slide; colors are hex.
 
 ## Recipes
 
-Writer report → PDF
+Branded one-pager → PDF (header band, heading, body, list, table)
 ```
 create_document   {"kind": "writer"}
-insert_text       {"doc_id": "doc-1", "text": "Quarterly Report"}
-insert_text       {"doc_id": "doc-1", "text": "Revenue grew 20% QoQ.", "paragraph_break": true}
+page_setup        {"doc_id": "doc-1", "margin": 2.3, "top": 3.8}
+add_page_box      {"doc_id": "doc-1", "x": 0, "y": 0, "w": 100, "h": 9, "fill": "#c2410c"}
+add_page_box      {"doc_id": "doc-1", "x": 10, "y": 2.5, "w": 55, "h": 5, "text": "Acme Report", "fill": "#c2410c", "color": "#ffffff", "size": 26, "bold": true}
+add_paragraph     {"doc_id": "doc-1", "text": "Q3 in review", "size": 20, "bold": true, "space_after": 0.3}
+add_paragraph     {"doc_id": "doc-1", "text": "Revenue grew 20% QoQ as the new line shipped.", "align": "justify", "space_after": 0.4}
+add_list          {"doc_id": "doc-1", "items": ["Launched in 3 regions", "Churn down 8%", "NPS up to 61"]}
+insert_table      {"doc_id": "doc-1", "rows": [["Metric", "Q2", "Q3"], ["Revenue", "$1.2M", "$1.44M"], ["Customers", "820", "910"]]}
 export_document   {"doc_id": "doc-1", "path": "/abs/path/report.pdf"}
 ```
+Note: give page boxes a `fill` (the title box uses the band's color so it blends);
+transparent frames aren't reliable across LibreOffice builds.
 
 Calc spreadsheet → XLSX
 ```
@@ -120,10 +136,10 @@ add_shape              {"doc_id": "doc-1", "slide": 1, "shape": "rect", "x": 30,
 export_document        {"doc_id": "doc-1", "path": "/abs/path/deck.pptx"}
 ```
 
-Documents with images/diagrams: the graphics tools above target Impress/Draw
-slides. Rich Writer documents (embedded images, drawn diagrams in a text doc)
-aren't exposed yet — build the visual as an Impress/Draw page and export, or
-open an issue. (`insert_text` / `find_and_replace` cover Writer text today.)
+Rich Writer documents use the **Writer — rich** tools above (styled paragraphs,
+lists, tables, inline images, and page-anchored bands/callouts). For a
+free-form drawn diagram, build it on an Impress/Draw page with the slide-graphics
+shapes and export, or render it and `insert_image` it into the document.
 
 ## Notes
 

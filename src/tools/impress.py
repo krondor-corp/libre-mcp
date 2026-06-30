@@ -3,6 +3,7 @@
 from mcp.server.fastmcp import FastMCP
 
 from src.office.session import get_session
+from src.tools._defaults import ACCENT, INK, WHITE
 
 
 def register(mcp: FastMCP) -> None:
@@ -88,7 +89,7 @@ def register(mcp: FastMCP) -> None:
         w: float,
         h: float,
         size: float = 18,
-        color: str = "#000000",
+        color: str = INK,
         bold: bool = False,
         italic: bool = False,
         align: str = "left",
@@ -126,14 +127,14 @@ def register(mcp: FastMCP) -> None:
         w: float,
         h: float,
         shape: str = "rect",
-        fill: str | None = "#c2410c",
+        fill: str | None = ACCENT,
         fill2: str | None = None,
         angle: float = 0,
         corner: int = 300,
         line: str | None = None,
         line_width: int = 40,
         text: str | None = None,
-        text_color: str = "#ffffff",
+        text_color: str = WHITE,
         text_size: float = 16,
         text_bold: bool = False,
     ) -> dict:

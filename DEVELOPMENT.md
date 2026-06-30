@@ -5,9 +5,10 @@ hot-reload.** The committed `.mcp.json` registers two servers:
 
 - **`libre`** — the installed `libre-mcp` binary (stable; needs `make install`
   or `install.sh` first).
-- **`libre-dev`** — `./bin/run.sh --dev`, run from your working tree
-  (`uv run libre-mcp`) over stdio in debug mode. **Use this while developing** —
-  it hot-reloads (below).
+- **`libre-dev`** — `./bin/run.sh --dev --live`, run from your working tree
+  (`uv run libre-mcp`) over stdio. **Use this while developing**: `--dev` adds
+  debug logging + hot-reload (below) and `--live` opens a **visible LibreOffice
+  window** so you can watch documents being built. The two flags are independent.
 
 ```bash
 git clone https://github.com/krondor-corp/libre-mcp
@@ -33,7 +34,15 @@ watches the source and reloads, so you iterate without reconnecting:
 A **brand-new tool group file** (a new `src/tools/<x>.py`) still needs a restart
 — add it to `_TOOL_MODULES` in `src/server.py`, then `/mcp` → reconnect `libre`.
 
-`make dev` runs the same `./bin/run.sh --dev` standalone.
+`make dev` runs `./bin/run.sh --dev` standalone (add `--live` for a window).
+
+## Live mode
+
+`--live` (env `LIBRE_MCP_LIVE=1`) launches soffice **non-headless** and pops each
+open document into a real LibreOffice window, so you watch the agent build it in
+real time instead of export → read-PDF. It needs a display, so it's a local-dev
+aid only — the shipped binary and CI always run headless. `--live` is independent
+of `--dev`; the committed `.mcp.json` turns both on for `libre-dev`.
 
 ## Commands
 
@@ -62,6 +71,7 @@ Live integration tests run only when LibreOffice is found, otherwise they skip
 |---------|---------|---------|
 | `LIBRE_MCP_SOFFICE_PATH` | auto | soffice binary override |
 | `LIBRE_MCP_PYTHON_PATH` | auto | LibreOffice python override |
-| `LIBRE_MCP_LOG_LEVEL` | `INFO` | stderr log level |
+| `LIBRE_MCP_LOG_LEVEL` | `INFO` | stderr log level (`DEBUG` enables hot-reload) |
+| `LIBRE_MCP_LIVE` | `false` | run a visible LibreOffice window (needs a display) |
 
 See [RELEASES.md](RELEASES.md) for the release process.

@@ -7,7 +7,7 @@
     },
     "libre-dev": {
       "command": "./bin/run.sh",
-      "args": ["--dev"],
+      "args": ["--dev", "--live"],
       "env": {}
     }
   }

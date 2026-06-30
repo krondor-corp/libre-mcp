@@ -30,6 +30,7 @@ class SofficeProcess:
         profile_dir: str,
         keep_profile: bool = False,
         startup_timeout: float = 30.0,
+        visible: bool = False,
     ) -> None:
         self.soffice_path = soffice_path
         self.pipe_name = pipe_name
@@ -38,6 +39,7 @@ class SofficeProcess:
         )
         self.keep_profile = keep_profile
         self.startup_timeout = startup_timeout
+        self.visible = visible
         self._proc: subprocess.Popen | None = None
 
     @property
@@ -47,10 +49,11 @@ class SofficeProcess:
     async def start(self) -> None:
         os.makedirs(self.profile, exist_ok=True)
         accept = f"pipe,name={self.pipe_name};urp;StarOffice.ComponentContext"
+        # Live mode shows a real window; otherwise run headless/invisible.
+        window = [] if self.visible else ["--headless", "--invisible"]
         args = [
             self.soffice_path,
-            "--headless",
-            "--invisible",
+            *window,
             "--norestore",
             "--nologo",
             "--nodefault",
