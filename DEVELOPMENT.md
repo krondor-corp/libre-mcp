@@ -44,6 +44,15 @@ real time instead of export → read-PDF. It needs a display, so it's a local-de
 aid only — the shipped binary and CI always run headless. `--live` is independent
 of `--dev`; the committed `.mcp.json` turns both on for `libre-dev`.
 
+A fatal doc error (e.g. `DisposedException`) first probes bridge health via
+`ping` (which touches the desktop, so it proves the URP bridge is up): if
+only that document is gone — closed in the live window — the error surfaces
+without touching the healthy session; only a dead bridge tears it down,
+leaving it restartable for the next call. Doc-less ops (`create/open/ping`)
+retry once against the rebuilt session. `close_document(force=True)` falls
+back to `dispose()` when the controller vetoes the close (e.g. a stuck
+confirmation dialog), so force always terminates the document.
+
 ## Commands
 
 ```bash
