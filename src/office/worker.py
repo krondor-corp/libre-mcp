@@ -63,16 +63,18 @@ class WorkerClient:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
-        self._stderr_task = asyncio.create_task(self._drain_stderr())
+        assert self._proc and self._proc.stderr
+        self._stderr_task = asyncio.create_task(self._drain_stderr(self._proc.stderr))
         # readiness handshake
         pong = await self.call("ping")
         if not pong.get("pong"):
             raise WorkerError("worker", "did not answer ping")
         log.info("uno worker ready")
 
-    async def _drain_stderr(self) -> None:
-        assert self._proc and self._proc.stderr
-        async for raw in self._proc.stderr:
+    async def _drain_stderr(self, stream) -> None:
+        # The stream is captured at spawn: the task may first run after
+        # stop() has already cleared self._proc, so it must not read it.
+        async for raw in stream:
             line = raw.decode(errors="replace").rstrip()
             if line:
                 log.debug("[worker] %s", line)

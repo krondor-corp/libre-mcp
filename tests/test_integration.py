@@ -70,3 +70,12 @@ async def test_calc_formula(session):
     )
     out = await session.call("read_cells", doc_id=doc_id, range="A3:A3")
     assert out["values"][0][0] == 42.0
+
+
+@requires_lo
+async def test_ping_reports_desktop_components(session):
+    doc = await session.call("create_document", kind="writer")
+    out = await session.call("ping")
+    assert out["pong"] is True
+    assert out["components"] >= 1
+    await session.call("close_document", doc_id=doc["doc_id"], force=True)

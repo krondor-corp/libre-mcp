@@ -2,8 +2,11 @@
 expose a single async `call(op, **args)` to the rest of the app.
 
 Instances are disposable. If the worker reports a fatal error (e.g. the URP
-bridge was disposed because soffice died), we tear the session down and rebuild
-it, retrying the failed call once.
+bridge was disposed because soffice died), doc-less ops (create/open/ping)
+tear the session down and retry once against the rebuild. A fatal doc op
+first probes bridge health: if only that document is gone (e.g. closed in
+the live window) the error surfaces without touching the healthy session;
+only a dead bridge tears it down, leaving it restartable for the next call.
 """
 
 import asyncio
@@ -89,12 +92,41 @@ class OfficeSession:
         except WorkerError as e:
             if not e.fatal:
                 raise
+            if "doc_id" in args:
+                # A restart drops all doc handles, so retrying a doc op could
+                # only fail with "unknown doc_id" and mask the real error.
+                # But only a dead bridge warrants a teardown: the document
+                # alone may be gone (closed in the live window) while the
+                # session stays healthy. Probing also covers the reverse —
+                # without it the next call would reuse a dead bridge (both
+                # procs still look alive to _ensure_started) and fail again.
+                if await self._bridge_alive():
+                    log.warning(
+                        "fatal doc error (%s); bridge alive, keeping session",
+                        e,
+                    )
+                    raise
+                log.warning("fatal worker error (%s); bridge dead, tearing down", e)
+                async with self._lock:
+                    await self._teardown_locked()
+                raise
             log.warning("fatal worker error (%s); restarting session and retrying", e)
             async with self._lock:
                 await self._teardown_locked()
                 await self._start_locked()
             assert self._worker
             return await self._worker.call(op, **args)
+
+    async def _bridge_alive(self) -> bool:
+        # ping touches the desktop, so it proves the URP bridge is up —
+        # unlike the procs, which outlive a disposed connection. Never raises:
+        # an unprobable bridge counts as dead (teardown is the safe side).
+        try:
+            assert self._worker
+            await self._worker.call("ping")
+            return True
+        except Exception:
+            return False
 
     async def reload_worker(self) -> None:
         """Restart just the UNO worker against the running soffice, picking up
