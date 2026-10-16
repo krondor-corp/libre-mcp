@@ -117,6 +117,12 @@ class _RevListener(unohelper.Base, XModifyListener):
         pass
 
 
+# _show() retry budget: a frame fresh off the loader is sometimes not
+# realizable the very instant loading returns.
+_SHOW_ATTEMPTS = 10
+_SHOW_RETRY_DELAY = 0.2
+
+
 class Worker:
     def __init__(self, url: str) -> None:
         self.url = url
@@ -143,12 +149,31 @@ class Worker:
         return False if show is None else not show
 
     def _show(self, doc):
+        """Map the document window, retrying briefly: a frame fresh off the
+        loader is sometimes not realizable the very instant loading
+        returns, and one swallowed failure leaves live mode windowless
+        forever. Never raises — a visibility failure must not fail the
+        open — but it is logged loudly instead of being swallowed.
+
+        Deliberately no toFront(): on Wayland it disposes the URP bridge
+        (every later op on the connection then fails with
+        DisposedException) while the compositor owns focus anyway;
+        setVisible alone maps the window.
+        """
         try:
             win = doc.getCurrentController().getFrame().getContainerWindow()
-            win.setVisible(True)
-            win.toFront()
-        except Exception:
-            pass
+        except Exception as e:
+            eprint(f"_show: no container window: {e}")
+            return
+        last = None
+        for _ in range(_SHOW_ATTEMPTS):
+            try:
+                win.setVisible(True)
+                return
+            except Exception as e:  # window not realizable yet; retry
+                last = e
+                time.sleep(_SHOW_RETRY_DELAY)
+        eprint(f"_show: setVisible failed after retries: {last}")
 
     # -- connection -------------------------------------------------------
     def connect(self, timeout: float = 30.0, delay: float = 0.5) -> None:
